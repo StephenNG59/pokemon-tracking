@@ -1,9 +1,8 @@
+import os
 from flask import Flask, render_template, request, jsonify
 import json
 from datetime import datetime
-from utils import calculate_rewards
 import sqlite3
-
 
 app = Flask(__name__)
 
@@ -79,32 +78,6 @@ def get_tasks():
 def home():
     return render_template('index.html')
 
-# 提交数据的路由
-@app.route('/submit', methods=['POST'])
-def submit():
-    # 获取表单数据
-    tasks = int(request.form['tasks'])
-    study_time = int(request.form['study_time'])
-    exercise_time = int(request.form['exercise_time'])
-    game_time = int(request.form['game_time'])
-
-    # 计算奖励或惩罚（可以在此基础上进行扩展）
-    rewards = calculate_rewards(
-        tasks, study_time, exercise_time, game_time)
-
-    data = {
-        'date': str(datetime.now().date()),
-        'tasks': tasks,
-        'study_time': study_time,
-        'exercise_time': exercise_time,
-        'game_time': game_time,
-        'rewards': rewards
-    }
-
-    with open('data/daily_log.json', 'a') as f:
-        f.write(json.dumps(data) + '\n')
-
-    return '提交成功!'
 
 if __name__ == '__main__':
     init_db()  # 启动时初始化数据库
