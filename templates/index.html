@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokémon Tracker</title>
     <!-- 引入Bootswatch: Darkly主题 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/darkly/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/vapor/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -172,20 +172,20 @@ function displayTask(task) {
   listItem.classList.add('accordion-item');
 
   // 获取Emergency,Importance,Difficulty的符号表示
-  const emergencySymbol = task.emergency === 1 ? '❕' : 
-                          task.emergency === 2 ? '❕❕' : 
-                          task.emergency === 3 ? '❕❕❕' : 
-                          task.emergency === 4 ? '❕❕❕❕' :
+  const emergencySymbol = task.emergency === 1 ? '🔥' : 
+                          task.emergency === 2 ? '🔥🔥' : 
+                          task.emergency === 3 ? '🔥🔥🔥' : 
+                          task.emergency === 4 ? '🔥🔥🔥🔥' :
                           task.emergency;
   const importanceSymbol = task.importance === 1 ? '⭐' :
                            task.importance === 2 ? '⭐⭐' :
                            task.importance === 3 ? '⭐⭐⭐' : 
                            task.importance === 4 ? '⭐⭐⭐⭐' : 
                            task.importance;
-  const difficultySymbol = task.difficulty === 1 ? '🗝' :
-                           task.difficulty === 2 ? '🗝🗝' : 
-                           task.difficulty === 3 ? '🗝🗝🗝' : 
-                           task.difficulty === 4 ? '🗝🗝🗝🗝' :
+  const difficultySymbol = task.difficulty === 1 ? '🔮' :
+                           task.difficulty === 2 ? '🔮🔮' : 
+                           task.difficulty === 3 ? '🔮🔮🔮' : 
+                           task.difficulty === 4 ? '🔮🔮🔮🔮' :
                            task.difficulty; 
 
   // 把Notes中的换行符替换为HTML的换行标签
@@ -196,9 +196,9 @@ function displayTask(task) {
     <h2 class="accordion-header" id="heading-${task.id}">
       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${task.id}" aria-expanded="false" aria-controls="collapse-${task.title}">
         <span style="width: 200px; overflow: hidden; text-overflow: ellipsis;">${task.title}</span>
-        <span style="width: 80px;">${emergencySymbol}</span>
-        <span style="width: 150px;">${importanceSymbol}</span>
-        <span style="width: 150px;">${difficultySymbol}</span>
+        <span style="width: 120px;">${emergencySymbol}</span>
+        <span style="width: 120px;">${importanceSymbol}</span>
+        <span style="width: 120px;">${difficultySymbol}</span>
         <span style="width: 80px;">${task.time}min</span>
       </button>
     </h2>
