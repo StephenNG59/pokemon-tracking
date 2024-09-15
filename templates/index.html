@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Tracker</title>
+    <!-- 引入Bootswatch: Darkly主题 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Pokémon Tracker</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarTracking" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tracking
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarTracking">
+            <li><a class="dropdown-item" href="#">Research</a></li>
+            <li><a class="dropdown-item" href="#">Habits</a></li>
+            <li><a class="dropdown-item" href="#">To-Dos</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pokédex</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Shops</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- 主内容区域 -->
+<div class="container mt-4">
+  <h2 class="mb-4">To-Dos</h2>
+  
+  <!-- 任务输入框 -->
+  <form id="todo-form" class="mb-3">
+    <div class="input-group d-flex align-items-center">
+      <input type="text" class="form-control" id="task-title" placeholder="Task title...">
+      <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#task-details" aria-expanded="false" aria-controls="task-details">
+        Toggle Details
+      </button>
+      <button class="btn btn-success" type="button" id="add-task">Add Task</button>
+    </div>
+  </form>
+
+  <!-- 可展开的内容：Notes, Importance, Difficulty, Estimated Time -->
+  <div class="collapse" id="task-details">
+    <div class="card card-body">
+      <form>
+        <!-- Notes -->
+        <div class="mb-3">
+          <label for="task-notes" class="form-label">Notes</label>
+          <textarea class="form-control" id="task-notes" rows="2" placeholder="任务备注"></textarea>
+        </div>
+
+        <!-- Emergency 选择 -->
+        <label style="width: 120px" class="me-2">Emergency</label>
+        <div class="btn-group" role="group" aria-label="Emergency group">
+          <input type="radio" class="btn-check" name="task-emergency" id="emergency-low" autocomplete="off" checked="" value=1>
+          <label class="btn btn-outline-danger" for="emergency-low" style="width: 80px;">Low</label>
+
+          <input type="radio" class="btn-check" name="task-emergency" id="emergency-medium" autocomplete="off" value=2>
+          <label class="btn btn-outline-danger" for="emergency-medium" style="width: 100px;">Medium</label>
+
+          <input type="radio" class="btn-check" name="task-emergency" id="emergency-high" autocomplete="off" value=3>
+          <label class="btn btn-outline-danger" for="emergency-high" style="width: 100px;">High</label>
+
+          <input type="radio" class="btn-check" name="task-emergency" id="emergency-critical" autocomplete="off" value=4>
+          <label class="btn btn-outline-danger" for="emergency-critical" style="width: 120px;">Critical</label>
+        </div>
+        <br>
+
+        <!-- Importance 选择 -->
+        <label style="width: 120px" class="me-2">Importance</label>
+        <div class="btn-group" role="group" aria-label="Importance group">
+          <input type="radio" class="btn-check" name="task-importance" id="importance-low" autocomplete="off" checked="" value=1>
+          <label class="btn btn-outline-warning" for="importance-low" style="width: 80px;">Low</label>
+
+          <input type="radio" class="btn-check" name="task-importance" id="importance-medium" autocomplete="off" value=2>
+          <label class="btn btn-outline-warning" for="importance-medium" style="width: 100px;">Medium</label>
+
+          <input type="radio" class="btn-check" name="task-importance" id="importance-high" autocomplete="off" value=3>
+          <label class="btn btn-outline-warning" for="importance-high" style="width: 100px;">High</label>
+
+          <input type="radio" class="btn-check" name="task-importance" id="importance-critical" autocomplete="off" value=4>
+          <label class="btn btn-outline-warning" for="importance-critical" style="width: 120px;">Critical</label>
+        </div>
+        <br>
+
+        <!-- Difficulty 选择 -->
+        <label style="width: 120px" class="me-2">Difficulty</label>
+        <div class="btn-group" role="group" aria-label="Difficulty group">
+          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-easy" autocomplete="off" checked="" value=1>
+          <label class="btn btn-outline-info" for="difficulty-easy" style="width: 80px;">Easy</label>
+
+          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-medium" autocomplete="off" value=2>
+          <label class="btn btn-outline-info" for="difficulty-medium" style="width: 100px;">Medium</label>
+
+          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-hard" autocomplete="off" value=3>
+          <label class="btn btn-outline-info" for="difficulty-hard" style="width: 100px;">Hard</label>
+
+          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-very-hard" autocomplete="off" value=4>
+          <label class="btn btn-outline-info" for="difficulty-very-hard" style="width: 120px;">Very Hard</label>
+        </div>
+        <br>
+
+        <!-- Estimated Time (使用选择框实现) -->
+        <div class="mb-3 d-flex align-items-center">
+          <label for="task-time" class="form-label me-2" style="width: 120px">Estimated Time</label>
+          <select class="form-select w-auto" id="task-time">
+            <option value="15">15 分钟</option>
+            <option value="30">30 分钟</option>
+            <option value="60">1 小时</option>
+            <option value="90">1.5 小时</option>
+            <option value="120">2 小时</option>
+          </select>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 显示已添加的任务 -->
+  <div class="accordion" id="task-list">
+    <h4>Unfinished</h4>
+    <ul class="list-group">
+      <!-- 动态任务将显示在这里 -->
+    </ul>
+  </div>
+</div>
+
+<!-- 引入Bootstrap的JS组件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JavaScript逻辑（用于添加任务） -->
+<script>
+// 保存任务到服务器
+function saveTaskToServer(task) {
+  fetch('/add_task', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(task),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      task.id = data.id;  // 获取从后端返回的任务id
+      displayTask(task);  // 显示任务
+    }
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+}
+
+// 显示任务函数
+function displayTask(task) {
+  const taskList = document.getElementById('task-list').querySelector('ul');
+  const listItem = document.createElement('div');
+  listItem.classList.add('accordion-item');
+
+  // 获取Emergency,Importance,Difficulty的符号表示
+  const emergencySymbol = task.emergency === 1 ? '❕' : 
+                          task.emergency === 2 ? '❕❕' : 
+                          task.emergency === 3 ? '❕❕❕' : 
+                          task.emergency === 4 ? '❕❕❕❕' :
+                          task.emergency;
+  const importanceSymbol = task.importance === 1 ? '⭐' :
+                           task.importance === 2 ? '⭐⭐' :
+                           task.importance === 3 ? '⭐⭐⭐' : 
+                           task.importance === 4 ? '⭐⭐⭐⭐' : 
+                           task.importance;
+  const difficultySymbol = task.difficulty === 1 ? '🗝' :
+                           task.difficulty === 2 ? '🗝🗝' : 
+                           task.difficulty === 3 ? '🗝🗝🗝' : 
+                           task.difficulty === 4 ? '🗝🗝🗝🗝' :
+                           task.difficulty; 
+
+  // 把Notes中的换行符替换为HTML的换行标签
+  const formattedNotes = task.notes.replace(/\n/g, '<br>');
+
+  // 任务显示
+  listItem.innerHTML = `
+    <h2 class="accordion-header" id="heading-${task.id}">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${task.id}" aria-expanded="false" aria-controls="collapse-${task.title}">
+        <span style="width: 200px; overflow: hidden; text-overflow: ellipsis;">${task.title}</span>
+        <span style="width: 80px;">${emergencySymbol}</span>
+        <span style="width: 150px;">${importanceSymbol}</span>
+        <span style="width: 150px;">${difficultySymbol}</span>
+        <span style="width: 80px;">${task.time}min</span>
+      </button>
+    </h2>
+    <div id="collapse-${task.id}" class="accordion-collapse collapse" aria-labelledby="heading-${task.id}" data-bs-parent="#task-list">
+      <div class="accordion-body">
+        <p style="white-space: pre-wrap; word-wrap: break-word;">${task.notes || '这个人很懒，什么都没有写'}</p>
+        <button class="btn btn-danger float-end delete-task" data-task-id="${task.id}">🗑</button>
+      </div>
+    </div>
+  `;
+
+  // 添加到任务列表
+  taskList.appendChild(listItem);
+}
+
+// 删除任务的函数
+function deleteTask(taskId) {
+  fetch(`/delete_task/${taskId}`, {
+    method: 'DELETE',
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      // 从页面移除任务
+      const taskItem = document.querySelector(`[data-task-id="${taskId}"]`).closest('.accordion-item');
+      if (taskItem) {
+        taskItem.remove();  // 从 DOM 中移除任务元素
+      }
+    } else {
+      alert('删除任务失败');
+    }
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+}
+
+// 页面加载时
+document.addEventListener('DOMContentLoaded', function () {
+  // 在页面加载时折叠任务详情部分
+  let taskDetails = document.querySelector('#task-details');
+  if (taskDetails) {
+    let collapseInstance = bootstrap.Collapse.getOrCreateInstance(taskDetails);
+    collapseInstance.hide();  // 默认折叠
+  }
+
+  // 页面加载时获取并显示任务
+  fetch('/tasks')
+    .then(response => response.json())
+    .then(tasks => {
+      tasks.forEach(displayTask);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+// 监听 Add Task 按钮事件
+document.getElementById('add-task').addEventListener('click', function() {
+  const taskTitle = document.getElementById('task-title').value.trim();
+  const taskNotes = document.getElementById('task-notes').value.trim();
+  const taskEmergency = Number(document.querySelector('input[name="task-emergency"]:checked')?.value);
+  const taskImportance = Number(document.querySelector('input[name="task-importance"]:checked')?.value);
+  const taskDifficulty = Number(document.querySelector('input[name="task-difficulty"]:checked')?.value);
+  const taskTime = Number(document.getElementById('task-time').value);
+  
+  if (!taskTitle) {
+    alert("请填写任务标题");
+    return;
+  }
+
+  // 创建任务对象
+  const task = {
+    title: taskTitle,
+    notes: taskNotes,
+    emergency: taskEmergency,
+    importance: taskImportance,
+    difficulty: taskDifficulty,
+    time: taskTime
+  };
+  // 保存任务到服务器
+  saveTaskToServer(task);
+
+  // // 调用显示任务的函数
+  // displayTask(task);
+
+  // 清空表单
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-notes').value = '';
+  document.getElementById('task-time').value = '15';
+
+  // 重新设置选中的单选按钮
+  const selectedEmergency = document.querySelector('input[name="task-emergency"]:checked');
+  const selectedImportance = document.querySelector('input[name="task-importance"]:checked');
+  const selectedDifficulty = document.querySelector('input[name="task-difficulty"]:checked');
+  if (selectedEmergency) {
+    document.getElementById('emergency-low').checked = true;
+  }
+  if (selectedImportance) {
+    document.getElementById('importance-low').checked = true;
+  }
+  if (selectedDifficulty) {
+    document.getElementById('difficulty-easy').checked = true;
+  }
+
+  // 手动触发折叠填写任务详情部分
+  let taskDetails = document.querySelector('#task-details');
+  if (taskDetails) {
+    // 获取或创建 Collapse 实例，并将其折叠
+    let collapseInstance = bootstrap.Collapse.getOrCreateInstance(taskDetails);
+    collapseInstance.hide();  // 自动折叠填写部分
+  }
+  });
+
+// 监听输入框的keydown事件
+document.getElementById('task-title').addEventListener('keydown', function(event) {
+  // 检测是否按下了Enter键（key code 13）
+  if (event.key === 'Enter' || event.keyCode === 13) {
+    event.preventDefault(); // 阻止表单的默认提交行为
+    document.getElementById('add-task').click(); // 触发Add Task按钮的点击事件
+  }
+});
+
+// 监听删除按钮点击事件
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('delete-task')) {
+    const taskId = event.target.getAttribute('data-task-id');
+
+    // 弹出确认窗口
+    if (confirm('你确定要删除这个任务吗？')) {
+      deleteTask(taskId);  // 执行删除任务的逻辑
+    }
+  }
+});
+
+</script>
+
+</body>
+</html>
