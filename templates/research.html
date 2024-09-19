@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research | Pokémon Tracker</title>
+  <!-- 引入Bootswatch: Darkly主题 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #badge-container {
+      margin-top: 10px;
+    }
+
+    .badge-card {
+      position: relative;
+      margin: 0 10px;
+    }
+
+    .badge-img {
+      width: 80px;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .badge-count {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Pokémon Tracker</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarTracking" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tracking
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarTracking">
+            <li><a class="dropdown-item" href="/tracking/research">Research</a></li>
+            <li><a class="dropdown-item" href="#">Habits</a></li>
+            <li><a class="dropdown-item" href="/tracking/todos">To-Dos</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pokédex</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Shops</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<!-- =========================================================== -->
+<!-- 主内容区域 -->
+<div class="container mt-4">
+
+  <!-- 顶部区域：勋章展示和累计时长 -->
+  <div class="container mt-4">
+    <h2>Medals</h2>
+    <div id="badge-container" class="d-flex justify-content-start flex-wrap">
+      <!-- 勋章展示区 -->
+    </div>
+
+    <div>
+      <span class="badge bg-success">Day Badge 1</span>
+      <span class="badge bg-warning">Day Badge 2</span>
+      <span class="badge bg-danger">Day Badge 3</span>
+      <span>Accumulated: <span id="total-time">0</span> hours</span>
+    </div>
+  </div>
+
+  <!-- 计时器区域 -->
+  <div class="container mt-4">
+    <h2>Timer</h2>
+    <div class="d-flex align-items-center">
+      <div id="timer-display" class="display-4" style="width: 250px;">00:00:00</div>
+      <button class="btn btn-primary ms-3" onclick="startTimer()">Start</button>
+      <button class="btn btn-warning ms-3" onclick="pauseTimer()">Pause</button>
+      <button class="btn btn-danger ms-3" onclick="stopTimer()">Stop</button>
+    </div>
+  </div>
+
+  <!-- 手动输入区域 -->
+  <div class="container mt-4">
+    <h2>Record Time</h2>
+    <div class="mb-3 d-flex justify-content-front">
+      <div class="d-flex align-items-center">
+        <!-- Pick Date -->
+        <label for="date-picker" class="form-label me-2" style="white-space: nowrap;">Pick Date</label>
+        <input type="date" class="form-control me-4" id="date-picker" style="width: auto;">
+
+        <!-- Input Time -->
+        <label for="manual-time-input" class="form-label me-2" style="white-space: nowrap;">Input Time (minute)</label>
+        <input type="number me-auto" class="form-control me-4" id="manual-time-input" min="0" placeholder="minutes" style="width: auto;">
+      </div>
+
+      <!-- Save Button -->
+      <button class="btn btn-primary" onclick="manualTimeEntry()">Save Time</button>
+    </div>
+  </div>
+
+  <!-- 可视化图表区域 -->
+  <div class="container mt-4">
+    <h2>Visualization</h2>
+    <canvas id="time-chart" class="mb-4" width="400" height="200"></canvas>
+  </div>
+
+</div>
+
+
+<!-- =========================================================== -->
+<!-- Time Distribution Modal -->
+<div class="modal fade" id="time-distribution-modal" tabindex="-1" aria-labelledby="time-distribution-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="time-distribution-label">Time Allocation Ratio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Please use the slider to allocate the proportion of time between theoretical and practical tasks:</p>
+
+        <!-- 滑动条 -->
+        <label for="theory-practice-slider" class="form-label">Theory (0-100%)</label>
+        <input type="range" class="form-range" id="theory-practice-slider" min="0" max="100" value="50">
+        <p>Current Allocation: <span id="theory-percentage">50</span>% Theory, <span id="practice-percentage">50</span>% Practice</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirm-distribution-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =========================================================== -->
+<!-- 引入Bootstrap的JS组件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 引入Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const badges = [
+  { src: "{{ url_for('static', filename='imgs/badge1.png') }}", count: 3, level: 1 },
+  { src: "{{ url_for('static', filename='imgs/badge2.png') }}", count: 5, level: 2 },
+  { src: "{{ url_for('static', filename='imgs/badge3.png') }}", count: 2, level: 3 },
+  // 添加更多 badge 数据
+];
+
+function displayBadges() {
+  const container = document.getElementById('badge-container');
+  container.innerHTML = '';  // 清空之前的内容
+
+  badges.sort((a, b) => b.level - a.level);  // 按照 level 从大到小排序，越高级的越排左边
+
+  badges.forEach(badge => {
+    const badgeCard = document.createElement('div');
+    badgeCard.className = 'badge-card';
+
+    const img = document.createElement('img');
+    img.src = badge.src;
+    img.className = 'badge-img';
+    img.alt = `Badge ${badge.src}`;
+
+    const count = document.createElement('span');
+    count.className = 'badge-count';
+    count.textContent = badge.count;
+
+    badgeCard.appendChild(img);
+    badgeCard.appendChild(count);
+    container.appendChild(badgeCard);
+  });
+}
+
+
+
+
+let timerInterval;
+let elapsedTime = 0;
+let addMinutes = 0;
+let timeType = 'timer';  // timer / manual
+
+// 开始计时
+function startTimer() {
+  const startTime = Date.now() - elapsedTime * 1000 - 60000; // 继续上次计时
+  timerInterval = setInterval(() => {
+    elapsedTime = Math.floor((Date.now() - startTime) / 1000); // 以秒为单位计算
+    document.getElementById('timer-display').textContent = formatTime(elapsedTime); // 更新页面上的计时器
+  }, 1000);
+}
+
+// 暂停计时
+function pauseTimer() {
+  clearInterval(timerInterval);
+}
+
+// 停止计时并分配时间
+function stopTimer() {
+  clearInterval(timerInterval);
+  timeType = 'timer';
+  distributeTime(elapsedTime); // 调用时间分配函数
+  elapsedTime = 0;
+  document.getElementById('timer-display').textContent = formatTime(0); // 重置计时器显示
+}
+
+// 手动输入时间
+function manualTimeEntry() {
+  const selectedDate = document.getElementById('date-picker').value; // 获取选中的日期
+  const enteredTime = parseInt(document.getElementById('manual-time-input').value, 10); // 获取输入的分钟数
+  if (!selectedDate) {
+    alert('请选择日期');
+    return;
+  }
+  if (!enteredTime) {
+    alert('请输入分钟数');
+    return;
+  }
+  timeType = 'manual';
+  distributeTime(enteredTime * 60); // 调用时间分配函数，分钟转化为秒
+}
+
+// 分配时间比例到理论和实践
+function distributeTime(totalTimeInSeconds) {
+  const totalMinutes = Math.floor(totalTimeInSeconds / 60); // 转换为分钟
+  if (totalMinutes > 0) {
+    addMinutes = totalMinutes;
+    // 显示滑动条分配时间
+    showTimeDistributionModal();
+  }
+}
+
+// 显示时间分配滑动条的 Modal
+function showTimeDistributionModal() {
+  const slider = document.getElementById('theory-practice-slider');
+  const theoryPercentageDisplay = document.getElementById('theory-percentage');
+  const practicePercentageDisplay = document.getElementById('practice-percentage');
+
+  slider.value = 50;  // 初始值
+  theoryPercentageDisplay.textContent = 50;
+  practicePercentageDisplay.textContent = 50;
+
+  // 监听滑动条的变化
+  slider.addEventListener('input', function() {
+    const theoryPercentage = slider.value;
+    const practicePercentage = 100 - theoryPercentage;
+    theoryPercentageDisplay.textContent = theoryPercentage;
+    practicePercentageDisplay.textContent = practicePercentage;
+  });
+
+  // 打开 Modal
+  const modal = new bootstrap.Modal(document.getElementById('time-distribution-modal'));
+  modal.show();
+}
+
+// 时间分配
+function handleTimeDistribution(totalMinutes, theoryPercentage) {
+  const practicePercentage = 100 - theoryPercentage;
+  
+  // 根据比例分配理论和实践的时间
+  const theoryTime = Math.floor(totalMinutes * (theoryPercentage / 100));
+  const practiceTime = Math.floor(totalMinutes * (practicePercentage / 100));
+  
+  console.log(theoryTime, practiceTime);
+
+  // 发放时间精华
+  distributeTimeEssence(theoryTime + practiceTime);
+
+  // 更新数据库
+  saveTimeToDatabase(theoryTime, practiceTime);
+}
+
+// 保存时间到数据库（可使用本地缓存，待日后同步）
+function saveTimeToDatabase(theoryTime, practiceTime) {
+  const selectedDate = document.getElementById('date-picker').value; // 获取选中的日期
+
+  // 保存理论和实践的时间
+  fetch('/save_time', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      date: timeType === 'manual' ? selectedDate : new Date().toJSON(),
+      theory_time: theoryTime,
+      practice_time: practiceTime,
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      console.log('时间已保存');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+
+// 计时器停止时发放时间精华
+function distributeTimeEssence(totalTime) {
+  // 计算应发放的时间精华数量（每10分钟1个）
+  const timeEssenceEarned = Math.floor(totalTime / 10);  // totalTime 是以分钟为单位
+
+  // 更新数据库，增加时间精华数量
+  fetch('/update_items', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      item_name: 'Time Essence',
+      quantity: timeEssenceEarned
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      console.log(`已发放 ${timeEssenceEarned} 个时间精华`);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+
+// 生成图表
+function generateTimeChart(dates, theoryTimes, practiceTimes) {
+  // 将日期字符串转换为 Date 对象，并保持与对应时间数据的关联
+  const data = dates.map((date, index) => ({
+    date: new Date(date),  // 假设日期格式可以被 Date() 解析，如 '2024-09-18'
+    theoryTime: theoryTimes[index],
+    practiceTime: practiceTimes[index]
+  }));
+
+  // 按日期排序
+  data.sort((a, b) => a.date - b.date);
+
+  // 提取排序后的日期和时间数据
+  const sortedDates = data.map(item => item.date.toISOString().split('T')[0]);  // 只保留 YYYY-MM-DD 部分
+  const sortedTheoryTimes = data.map(item => item.theoryTime);
+  const sortedPracticeTimes = data.map(item => item.practiceTime);
+
+  // 获取 Bootstrap 主题的颜色变量
+  const infoColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-info').trim();
+  const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary').trim();
+
+  // 生成图表
+  const ctx = document.getElementById('time-chart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',  // 可以选择 'bar', 'line'
+    data: {
+      labels: sortedDates,  // X轴日期
+      datasets: [
+        {
+          label: 'Theory Times',
+          data: sortedTheoryTimes,
+          backgroundColor: infoColor, //'rgba(54, 162, 235, 0.5)',
+          borderColor: infoColor, //'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Practice Times',
+          data: sortedPracticeTimes,
+          backgroundColor: secondaryColor, //'rgba(75, 192, 192, 0.5)',
+          borderColor: secondaryColor, //'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          beginAtZero: true
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// 格式化时间（将秒数转换为 hh:mm:ss 格式）
+function formatTime(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// 加载勋章
+document.addEventListener('DOMContentLoaded', displayBadges);
+
+// 加载时获取所有时间数据
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/get_time_data')
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const dates = data.data.map(item => item.date);
+      const theoryTimes = data.data.map(item => item.theory_time);
+      const practiceTimes = data.data.map(item => item.practice_time);
+
+      generateTimeChart(dates, theoryTimes, practiceTimes);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+
+  // 在页面加载时为按钮注册点击事件
+  document.getElementById('confirm-distribution-btn').onclick = function() {
+    const slider = document.getElementById('theory-practice-slider');
+    const theoryPercentage = parseInt(slider.value, 10);
+    
+    // 调用时间分配逻辑
+    handleTimeDistribution(addMinutes, theoryPercentage);
+
+    // 关闭 Modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('time-distribution-modal'));
+    modal.hide();
+  };
+});
+
+
+</script>
+
+</body>
+</html>
