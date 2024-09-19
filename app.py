@@ -1,77 +1,154 @@
 import os
 from flask import Flask, render_template, request, jsonify
-import json
 from datetime import datetime
-import sqlite3
+from supabase import create_client, Client
+
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")  # $env:SUPABASE_URL="..."
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # $env:SUPABASE_KEY="..."
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 app = Flask(__name__)
 
-# 初始化数据库
-def init_db():
-    conn = sqlite3.connect('data/tasks.db')  # 创建或连接本地数据库文件
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            notes TEXT,
-            emergency INTEGER,
-            importance INTEGER,
-            difficulty INTEGER,
-            time INTEGER
-        )
-    ''')
-    conn.commit()
-    conn.close()
 
+# =========================================================
 # 添加任务到数据库
 @app.route('/add_task', methods=['POST'])
-def add_task():
+def add_task_to_supabase():
     task_data = request.json
-    conn = sqlite3.connect('data/tasks.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO tasks (title, notes, emergency, importance, difficulty, time)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (task_data['title'], task_data['notes'], task_data['emergency'], task_data['importance'], task_data['difficulty'], task_data['time']))
-    task_id = cursor.lastrowid  # 获取新插入任务的id
-    conn.commit()
-    conn.close()
-    return jsonify({'status': 'success', 'id': task_id})
+    response = supabase.table('Tasks').insert({
+        'title': task_data['title'],
+        'notes': task_data['notes'],
+        'emergency': task_data['emergency'],
+        'importance': task_data['importance'],
+        'difficulty': task_data['difficulty'],
+        'estimated_time': task_data['estimated_time'],
+    }, returning='representation').execute()
+    return jsonify({'status': 'success', 'id': response.data[0]['id']})
 
+# 从数据库中读取一个任务
+@app.route('/get_task/<int:task_id>', methods=['GET'])
+def get_task(task_id):
+    response = supabase.table('Tasks').select('*').eq('id', task_id).execute()
+    task = response.data[0]
+    return jsonify(task)
+
+# 更新数据库的任务
+@app.route('/update_task/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    data = request.json  # 从请求中获取要更新的数据
+
+    # 更新 Supabase 中的任务
+    response = supabase.table('Tasks').update(data).eq('id', task_id).execute()
+
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
+
+# 从数据库中删除任务
 @app.route('/delete_task/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
-    conn = sqlite3.connect('data/tasks.db')
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
-    conn.commit()
-    conn.close()
+    response = supabase.table('Tasks').delete().eq('id', task_id).execute()
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
 
-    return jsonify({'status': 'success'})
+# 从数据库中完成任务
+@app.route('/finish_task/<int:task_id>', methods=['PUT'])
+def finish_task(task_id):
+    data = request.json  # 从请求中获取要更新的数据
+    is_finished = data.get('is_finished')
+    finished_at = data.get('finished_at')
+
+    # 更新 Supabase 中的任务
+    response = supabase.table('Tasks').update({
+        'is_finished': is_finished,
+        'finished_at': finished_at
+    }).eq('id', task_id).execute()
+
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
 
 # 从数据库读取所有任务
 @app.route('/tasks', methods=['GET'])
-def get_tasks():
-    conn = sqlite3.connect('data/tasks.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM tasks')
-    tasks = cursor.fetchall()
-    conn.close()
+def get_all_tasks():
+    response = supabase.table('Tasks').select('*').execute()
+    tasks = response.data
 
     # 将任务数据转换为字典列表
     task_list = []
     for task in tasks:
         task_list.append({
-            'id': task[0],
-            'title': task[1],
-            'notes': task[2],
-            'emergency': task[3],
-            'importance': task[4],
-            'difficulty': task[5],
-            'time': task[6]
+            'id': task['id'],
+            'title': task['title'],
+            'notes': task['notes'],
+            'is_finished': task['is_finished'],
+            'created_at': task['created_at'],
+            'finished_at': task['finished_at'],
+            'emergency': task['emergency'],
+            'importance': task['importance'],
+            'difficulty': task['difficulty'],
+            'estimated_time': task['estimated_time']
         })
     
     return jsonify(task_list)
+
+
+# =========================================================
+# 保存每日时间和发放勋章
+@app.route('/save_time', methods=['POST'])
+def save_time():
+    data = request.json
+    date = data.get('date', datetime.today())
+    theory_time = data.get('theory_time', 0)
+    practice_time = data.get('practice_time', 0)
+
+    # 保存时间逻辑（存储理论和实践的时长）
+    response = supabase.rpc(
+        'increase_daily_effort', {
+            'day': date,
+            'x_theory': theory_time,
+            'x_practice': practice_time, 
+    }).execute()
+
+    if response:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '保存失败'})
+    
+# 获取历史每日时间
+@app.route('/get_time_data', methods=['GET'])
+def get_time_data():
+    # 从数据库中获取最近一周或一月的时间数据
+    response = supabase.table('DailyEffort').select('date', 'theory_time', 'practice_time').execute()
+
+    if response.data[0]:
+        return jsonify({'status': 'success', 'data': response.data})
+    else:
+        return jsonify({'status': 'error', 'message': '数据获取失败'})
+
+
+# =========================================================
+# 更新道具
+@app.route('/update_items', methods=['POST'])
+def update_items():
+    data = request.json
+    item_name = data.get('item_name')
+    quantity = data.get('quantity')
+
+    # 使用 SQL 原生查询更新 quantity 字段
+    response = supabase.rpc('increase_item', {'name': item_name, 'x': quantity}).execute()
+
+    if response:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '更新失败'})
+
 
 # 首页路由
 @app.route('/')
@@ -79,6 +156,17 @@ def home():
     return render_template('index.html')
 
 
+# To-Dos页路由
+@app.route('/tracking/todos')
+def todos():
+    return render_template('todos.html')
+
+
+# Research页路由
+@app.route('/tracking/research')
+def research():
+    return render_template('research.html')
+
+
 if __name__ == '__main__':
-    init_db()  # 启动时初始化数据库
     app.run(debug=True)
