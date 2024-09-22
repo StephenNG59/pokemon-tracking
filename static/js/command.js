@@ -11,6 +11,32 @@ class TaskQueueManager {
         }
     }
 
+    fetchTodo() {
+        fetch('/fetch_tasks')
+        .then(response => response.json())
+        .then(tasks => {
+            openIndexedDBTasks()
+            .then(db => {
+                const transaction = db.transaction('Tasks', 'readwrite');
+                const store = transaction.objectStore('Tasks');
+
+                tasks.forEach(task => {
+                    store.put({ ...task, id: task.id });
+
+                    // 根据 DOM 中有无当前 id 的任务决定
+                    const listItem = document.querySelector(`#heading-${task.id}`);
+                    if (listItem) {
+                        // 如果有相同 id 则更新 DOM
+                        updateTaskInDOM(task.id, task);
+                    } else {
+                        // 如果没有相同 id 则新建展示任务
+                        displayTask(task);
+                    }
+                });
+            });
+        });
+    }
+
     createTodo(task) {
         fetch('/create_task', {
             method: 'POST',
@@ -80,6 +106,9 @@ class TaskQueueManager {
         const task = this.queue.shift();
 
         switch (task.action) {
+            case 'fetch':
+                this.fetchTodo();
+                break;
             case 'create':
                 this.createTodo(task);
                 break;
@@ -122,29 +151,50 @@ class FetchTasksCommand extends Command {
         super();
     }
 
-    // Fetch from online database
-    fetchTasks() {
-        fetch('/fetch_tasks')
-        .then(response => {
-            return response.json();
+    // Step 1: Read from IndexedDB
+    readIndexedDB() {
+        return new Promise((resolve, reject) => {
+            openIndexedDBTasks().then(db => {
+                const transaction = db.transaction('Tasks', 'readonly');
+                const store = transaction.objectStore('Tasks');
+                const request = store.getAll();  // 获取所有任务
+
+                request.onsuccess = (event) => {
+                    const tasks = event.target.result;  // 获取到的所有任务数组
+                    resolve(tasks);  // 返回任务数组
+                };
+    
+                request.onerror = (event) => {
+                    console.error('Error fetching tasks:', event.target.error);
+                    reject('Error fetching tasks: ' + event.target.error);
+                };
+            }).catch(error => {
+                reject('IndexedDB error: ' + error);  // 如果打开数据库失败
+            });
         })
+    }
+
+    // Step 2: Update DOM
+    updateDOMWithTasks(tasks) {
+        tasks.forEach(task => {
+            displayTask(task);  // 调用现有的 displayTask() 函数
+        });
+    }
+
+    // Step 3: Add to queue for backend sync
+    addToSyncQueue() {
+        taskQueueManager.addTaskToQueue({
+            action: 'fetch',
+        });
     }
 
     // Execute
     execute() {
-        fetch('/fetch_tasks')
-        .then(response => response.json())
-        .then(tasks => {
-            openIndexedDBTasks()
-            .then(db => {
-                const transaction = db.transaction('Tasks', 'readwrite');
-                const store = transaction.objectStore('Tasks');
-
-                tasks.forEach(task => {
-                    store.put({ ...task, id: task.id });
-                    displayTask(task);
-                });
-            });
+        this.readIndexedDB().then((tasks) => {
+            this.updateDOMWithTasks(tasks);
+            this.addToSyncQueue();
+        }).catch(error => {
+            console.error('Error loading tasks:', error);
         });
     }
 }

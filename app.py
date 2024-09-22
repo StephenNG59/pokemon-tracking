@@ -118,12 +118,17 @@ def todos():
 # Habits页路由
 @app.route('/tracking/habits')
 def habits():
-    return render_template('test.html')
+    return render_template('habits.html')
 
 # Research页路由
 @app.route('/tracking/research')
 def research():
     return render_template('research.html')
+
+# Pokedex页路由
+@app.route('/pokedex')
+def pokedex():
+    return render_template('pokedex.html')
 
 # =========================================================================
 @app.route('/fetch_tasks', methods=['GET'])
@@ -170,6 +175,12 @@ def update_task(task_id):
     else:
         return jsonify({'status': 'error'})
 
+# =========================================================================
+@app.route('/api/pokedex', methods=['GET'])
+def fetch_pokemons():
+    response = supabase.table('Pokedex').select('*').execute()
+    # print(response.data)
+    return jsonify(response.data)
 
 if __name__ == '__main__':
     app.run(debug=True)
