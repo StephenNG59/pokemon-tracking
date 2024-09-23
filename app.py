@@ -182,5 +182,10 @@ def fetch_pokemons():
     # print(response.data)
     return jsonify(response.data)
 
+@app.route('/fetch_pokedex', methods=['GET'])
+def fetch_pokedex():
+    response = supabase.table('Pokedex').select('*').execute()
+    return jsonify(response.data)
+
 if __name__ == '__main__':
     app.run(debug=True)

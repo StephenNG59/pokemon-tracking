@@ -1,190 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokémon Pokédex</title>
-  <!-- Bootswatch Minty 主题 -->
+  <title>Pokédex | Pokémon Tracker</title>
+  <!-- 引入Bootswatch: Minty主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* 自定义滚动条和布局样式 */
+    /* 自定义左边侧边栏和布局样式 */
     .pokedex-sidebar {
-      height: 100vh;
-      /* 让侧边栏占满高度 */
-      overflow-y: auto;
-      /* 垂直滚动 */
-      border-right: 1px solid #ccc;
-      /* 添加分割线 */
-    }
+      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
+      min-width: 360px;
+      width: 20vw;
+      overflow-y: scroll;  /* 垂直滚动 */
+      border-right: 10px solid var(--bs-primary-bg-subtle);  /* 添加分割线 */
+      background-color: var(--bs-light);
 
-    .pokedex-sidebar .pokemon-thumbnail {
-      padding: 10px;
+      /* 将滚动条放到左侧 */
+      direction: rtl;
+      text-align: left; /* 保持文本从左到右排列 */
+    }
+    
+    /* ================ 自定义滚动条的样式 ====================== */
+    /* 左侧 */
+    /* 反转内部滚动条方向，使滚动条在左侧生效 */
+    .pokedex-sidebar > * {
+      direction: ltr; /* 内部内容恢复为左到右 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar {
+      width: 15px;  /* 滚动条的宽度 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-track {
+      background: var(--bs-primary-bg-subtle);  /* 滚动条背景色 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-thumb {
+      background-color: var(--bs-secondary-bg-subtle);  /* 滚动条的颜色 */
+      border-radius: 10px;  /* 圆角滚动条 */
+      border: 2px solid var(--bs-primary-bg-subtle);  /* 滚动条的外边框 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-thumb:hover {
+      background-color: var(--bs-secondary);  /* 滚动条在 hover 时变暗 */
+    }
+    /* 右侧 */
+    .pokedex-content::-webkit-scrollbar {
+      width: 15px;  /* 滚动条的宽度 */
+    }
+    .pokedex-content::-webkit-scrollbar-track {
+      background: var(--bs-primary-bg-subtle);  /* 滚动条背景色 */
+    }
+    .pokedex-content::-webkit-scrollbar-thumb {
+      background-color: var(--bs-secondary-bg-subtle);  /* 滚动条的颜色 */
+      border-radius: 10px;  /* 圆角滚动条 */
+      border: 2px solid var(--bs-primary-bg-subtle);  /* 滚动条的外边框 */
+    }
+    .pokedex-content::-webkit-scrollbar-thumb:hover {
+      background-color: var(--bs-secondary);  /* 滚动条在 hover 时变暗 */
+    }
+    /* ================ 自定义滚动条的样式 ====================== */
+
+
+    .pokedex-card {
       cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: auto;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      color: rgb(255, 255, 255);
+    }
+    
+    .pokedex-card-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 10px;
+      padding-left: 15px;
+      flex-grow: 1;  /* 让左侧信息区域占据剩余空间 */
     }
 
-    .pokedex-sidebar .pokemon-thumbnail:hover {
-      background-color: #e9ecef;
+    .pokedex-card-thumbnail {
+      background-color: rgba(255, 255, 255, 0.5);
+      padding: 0px;
+      border-top-left-radius: 50px;
+      border-bottom-left-radius: 50px;
+      display: flex;
+      justify-content: flex-end;
+      width: 95px;
+      height: 80px;
+    }
+
+    .pokedex-card:hover {
+      background-color: var(--bs-primary-bg-subtle);
+    }
+
+    .pokedex-card img {
+      /* max-width: 60px; */
+      height: 100%;  /* 让图片占满容器 */
+      width: auto;
+      object-fit: contain;
+    }
+
+    .pokedex-content {
+      flex-grow: 1;  /* 占满剩下的宽度 */
+      display: flex;  /* 使内容能够水平或垂直布局 */
+      flex-direction: column;  /* 垂直排列子元素 */
+      justify-content: left;  /* 根据需求调整对齐方式 */
+      padding: 20px;  /* 适当的内边距 */
+      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
+      width: auto;
+      overflow-y: scroll;
+      background-color: var(--bs-light-bg-subtle);
+    }
+
+    .pokedex-upper-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
     }
 
     .pokedex-detail {
+      height: 500px;
+      width: 20vw;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      justify-content: start;
+      align-items: baseline;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-info-bg-subtle);
     }
 
     .pokedex-image {
+      height: 500px;
       max-width: 100%;
-      height: auto;
+      flex-grow: 1;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-secondary-bg-subtle);
+      /* height: auto; */
     }
 
-    /* 自定义卡片样式 */
-    .pokemon-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-left: 20px;
-        padding-right: 250px;
-        margin-bottom: 15px;
-        border-radius: 10px;
-        color: rgb(255, 255, 255);
+    .pokedex-media {
+      min-height: 800px;
+      max-width: 100%;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-primary-bg-subtle);
     }
 
-    .pokemon-card-info {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .pokemon-card-image {
-        background-color: rgba(255, 255, 255, 0.2);
-        padding: 10px;
-        border-radius: 10px;
-    }
-
-    .pokemon-card img {
-        max-width: 80px;
-        height: auto;
-    }
   </style>
 </head>
-
 <body>
+
+<!-- =========================================================== -->
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Pokémon Tracker</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarTracking" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tracking
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarTracking">
+            <li><a class="dropdown-item" href="/tracking/research">Research</a></li>
+            <li><a class="dropdown-item" href="/tracking/habits">Habits</a></li>
+            <li><a class="dropdown-item" href="/tracking/todos">To-Dos</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/pokedex">Pokédex</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Shops</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<!-- =========================================================== -->
+<!-- 主内容区域 -->
 <div class="container-fluid">
   <div class="row">
     <!-- 左侧滑动栏 -->
-    <!-- <div class="col-3 pokedex-sidebar">
-      <h5 class="text-center mt-3">Pokédex</h5>
-      <div id="pokemon-list">
-        <!- 在这里动态加载宝可梦缩略图 ->
+    <div class="pokedex-sidebar ">
+      <!-- <h5 class="text-center">Pokédex</h5> -->
+      <div id="pokedex-list" class="mt-4">
+        <!-- 在这里动态加载宝可梦缩略卡片 -->
       </div>
-    </div> -->
-    <div class="col-3 container mt-4">
-      <h3 class="text-center mb-4">Pokédex</h3>
-      <div id="pokemon-list">
-          <!-- 在这里动态加载宝可梦卡片 -->
-      </div>
-    </div>
+    </div> 
 
-    <!-- 中间宝可梦详情 -->
-    <div class="col-5">
-      <div class="pokedex-detail text-center mt-4">
-        <h3 id="pokemon-name" class="text-primary">请选择一个宝可梦</h3>
-        <p id="pokemon-id" class="text-muted"></p>
-        <p id="pokemon-type"></p>
+    <!-- 右侧内容展示 -->
+    <div class="pokedex-content">
+      <div class="pokedex-upper-row">
+        <!-- 上面左边详细资料 -->
+        <div class="pokedex-detail">
+          <span>这里是详细资料</span>
+        </div>
+  
+        <!-- 上面右边图片资料 -->
+        <div class="pokedex-image">
+          <span>这里是大图片展示区域</span>
+        </div>
       </div>
-    </div>
 
-    <!-- 右侧宝可梦图片和详细资料 -->
-    <div class="col-4 text-center">
-      <div class="pokedex-image-container mt-4">
-        <img id="pokemon-image" class="pokedex-image" src="" alt="宝可梦图片">
-      </div>
-      <div id="pokemon-description" class="mt-3">
-        <!-- 在这里加载宝可梦的描述等详细信息 -->
+      <!-- 下面更多资料 -->
+      <div class="pokedex-media">
+        <span>这里是更多媒体展示区域</span>
       </div>
     </div>
   </div>
 </div>
 
+
 <!-- Bootswatch Minty JS & Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- 引入 Color Thief 用于提取图片颜色 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script> -->
+<script src="{{ url_for('static', filename='js/command.js') }}"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const pokemonListElement = document.getElementById('pokemon-list');
-    const pokemonNameElement = document.getElementById('pokemon-name');
-    const pokemonIdElement = document.getElementById('pokemon-id');
-    const pokemonTypeElement = document.getElementById('pokemon-type');
-    const pokemonImageElement = document.getElementById('pokemon-image');
-    const pokemonDescriptionElement = document.getElementById('pokemon-description');
 
-    const colorThief = new ColorThief(); // 使用 Color Thief 库
+const commandManager = new CommandManager();
 
-    // 你的Supabase请求代码，假设你已经连接好Supabase
-    fetch('/api/pokedex')
-      .then(response => response.json())
-      .then(pokemons => {
-        // 动态加载宝可梦缩略图到左侧
-        pokemons.forEach(pokemon => {
-          // // === Method A. ===
-          // const pokemonItem = document.createElement('div');
-          // pokemonItem.classList.add('pokemon-thumbnail');
-          // pokemonItem.innerHTML = `<strong>No.${String(pokemon.id).padStart(3, '0')}</strong> ${pokemon.name_cn}`;
-          // pokemonItem.addEventListener('click', () => {
-          //   // 当点击时，更新中间和右侧区域的信息
-          //   pokemonNameElement.textContent = `${pokemon.name_cn} / ${pokemon.name_en}`;
-          //   pokemonIdElement.textContent = `编号: #${pokemon.id}`;
-          //   pokemonTypeElement.innerHTML = `类型: ${pokemon.type1}${pokemon.type2 ? `, ${pokemon.type2}` : ''}`;
-          //   pokemonImageElement.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
-          //   pokemonDescriptionElement.textContent = "这里加载宝可梦描述信息。";  // 替换成实际的描述
-          // });
-          //
-          // // 将生成的缩略图插入列表
-          // pokemonListElement.appendChild(pokemonItem);
-
-
-          // === Method B. ===
-          const cardElement = document.createElement('div');
-          cardElement.classList.add('col-md-4');
-          const formattedId = String(pokemon.id).padStart(3, '0');
-          const imgSrc = `static/imgs/${formattedId}.png`;
-          //`{{ url_for('static', filename="imgs/${formattedId}.png") }}`
-
-          // 卡片内容
-          cardElement.innerHTML = `
-            <div class="pokemon-card" id="pokemon-card-${pokemon.id}">
-              <div class="pokemon-card-info">
-                <strong>No.${String(pokemon.id).padStart(3, '0')}</strong>
-                <span>${pokemon.name_cn}</span>
-                <span class="text-muted">${pokemon.name_en}</span>
-              </div>
-              <div class="pokemon-card-image">
-                <img id="pokemon-image-${pokemon.id}" src="${imgSrc}" alt="${pokemon.name_cn}">
-              </div>
-            </div>
-          `;
-
-          pokemonListElement.appendChild(cardElement);
-
-          // 图片加载后提取颜色
-          const imgElement = document.getElementById(`pokemon-image-${pokemon.id}`);
-          imgElement.addEventListener('load', () => {
-            if (imgElement.complete && imgElement.naturalHeight !== 0) {
-              // 提取图片的主题色
-              const color = colorThief.getColor(imgElement);
-              const card = document.getElementById(`pokemon-card-${pokemon.id}`);
-              card.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-            }
-          });
-
-
-        });
-      });
-
-  });
+// ========================================================
+// 页面加载时
+document.addEventListener('DOMContentLoaded', function () {
+  const fetchPokedexCommand = new FetchPokedexCommand();
+  commandManager.executeCommand(fetchPokedexCommand);
+})
 </script>
-</body>
 
-</html>
+</body>
