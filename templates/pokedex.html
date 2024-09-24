@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex | Pokémon Tracker</title>
+  <!-- 引入Bootswatch: Minty主题 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* 自定义左边侧边栏和布局样式 */
+    .pokedex-sidebar {
+      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
+      min-width: 360px;
+      width: 20vw;
+      overflow-y: scroll;  /* 垂直滚动 */
+      border-right: 10px solid var(--bs-primary-bg-subtle);  /* 添加分割线 */
+      background-color: var(--bs-light);
+
+      /* 将滚动条放到左侧 */
+      direction: rtl;
+      text-align: left; /* 保持文本从左到右排列 */
+    }
+    
+    /* ================ 自定义滚动条的样式 ====================== */
+    /* 左侧 */
+    /* 反转内部滚动条方向，使滚动条在左侧生效 */
+    .pokedex-sidebar > * {
+      direction: ltr; /* 内部内容恢复为左到右 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar {
+      width: 15px;  /* 滚动条的宽度 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-track {
+      background: var(--bs-primary-bg-subtle);  /* 滚动条背景色 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-thumb {
+      background-color: var(--bs-secondary-bg-subtle);  /* 滚动条的颜色 */
+      border-radius: 10px;  /* 圆角滚动条 */
+      border: 2px solid var(--bs-primary-bg-subtle);  /* 滚动条的外边框 */
+    }
+    .pokedex-sidebar::-webkit-scrollbar-thumb:hover {
+      background-color: var(--bs-secondary);  /* 滚动条在 hover 时变暗 */
+    }
+    /* 右侧 */
+    .pokedex-content::-webkit-scrollbar {
+      width: 15px;  /* 滚动条的宽度 */
+    }
+    .pokedex-content::-webkit-scrollbar-track {
+      background: var(--bs-primary-bg-subtle);  /* 滚动条背景色 */
+    }
+    .pokedex-content::-webkit-scrollbar-thumb {
+      background-color: var(--bs-secondary-bg-subtle);  /* 滚动条的颜色 */
+      border-radius: 10px;  /* 圆角滚动条 */
+      border: 2px solid var(--bs-primary-bg-subtle);  /* 滚动条的外边框 */
+    }
+    .pokedex-content::-webkit-scrollbar-thumb:hover {
+      background-color: var(--bs-secondary);  /* 滚动条在 hover 时变暗 */
+    }
+    /* ================ 自定义滚动条的样式 ====================== */
+
+
+    .pokedex-card {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: auto;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      color: rgb(255, 255, 255);
+    }
+    
+    .pokedex-card-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 10px;
+      padding-left: 15px;
+      flex-grow: 1;  /* 让左侧信息区域占据剩余空间 */
+    }
+
+    .pokedex-card-thumbnail {
+      background-color: rgba(255, 255, 255, 0.5);
+      padding: 0px;
+      border-top-left-radius: 50px;
+      border-bottom-left-radius: 50px;
+      display: flex;
+      justify-content: flex-end;
+      width: 95px;
+      height: 80px;
+    }
+
+    .pokedex-card:hover {
+      background-color: var(--bs-primary-bg-subtle);
+    }
+
+    .pokedex-card img {
+      /* max-width: 60px; */
+      height: 100%;  /* 让图片占满容器 */
+      width: auto;
+      object-fit: contain;
+    }
+
+    .pokedex-content {
+      flex-grow: 1;  /* 占满剩下的宽度 */
+      display: flex;  /* 使内容能够水平或垂直布局 */
+      flex-direction: column;  /* 垂直排列子元素 */
+      justify-content: left;  /* 根据需求调整对齐方式 */
+      padding: 20px;  /* 适当的内边距 */
+      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
+      width: auto;
+      overflow-y: scroll;
+      background-color: var(--bs-light-bg-subtle);
+    }
+
+    .pokedex-upper-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .pokedex-detail {
+      height: 500px;
+      width: 20vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+      align-items: baseline;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-info-bg-subtle);
+    }
+
+    .pokedex-image {
+      height: 500px;
+      max-width: 100%;
+      flex-grow: 1;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-secondary-bg-subtle);
+      /* height: auto; */
+    }
+
+    .pokedex-media {
+      min-height: 800px;
+      max-width: 100%;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: var(--bs-primary-bg-subtle);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Pokémon Tracker</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarTracking" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tracking
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarTracking">
+            <li><a class="dropdown-item" href="/tracking/research">Research</a></li>
+            <li><a class="dropdown-item" href="/tracking/habits">Habits</a></li>
+            <li><a class="dropdown-item" href="/tracking/todos">To-Dos</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/pokedex">Pokédex</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Shops</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<!-- =========================================================== -->
+<!-- 主内容区域 -->
+<div class="container-fluid">
+  <div class="row">
+    <!-- 左侧滑动栏 -->
+    <div class="pokedex-sidebar ">
+      <!-- <h5 class="text-center">Pokédex</h5> -->
+      <div id="pokedex-list" class="mt-4">
+        <!-- 在这里动态加载宝可梦缩略卡片 -->
+      </div>
+    </div> 
+
+    <!-- 右侧内容展示 -->
+    <div class="pokedex-content">
+      <div class="pokedex-upper-row">
+        <!-- 上面左边详细资料 -->
+        <div class="pokedex-detail">
+          <span>这里是详细资料</span>
+        </div>
+  
+        <!-- 上面右边图片资料 -->
+        <div class="pokedex-image">
+          <span>这里是大图片展示区域</span>
+        </div>
+      </div>
+
+      <!-- 下面更多资料 -->
+      <div class="pokedex-media">
+        <span>这里是更多媒体展示区域</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bootswatch Minty JS & Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 引入 Color Thief 用于提取图片颜色 -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script> -->
+<script src="{{ url_for('static', filename='js/command.js') }}"></script>
+<script>
+
+const commandManager = new CommandManager();
+
+// ========================================================
+// 页面加载时
+document.addEventListener('DOMContentLoaded', function () {
+  const fetchPokedexCommand = new FetchPokedexCommand();
+  commandManager.executeCommand(fetchPokedexCommand);
+})
+</script>
+
+</body>

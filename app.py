@@ -9,53 +9,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # $env:SUPABASE_KEY="..."
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 
 # =========================================================
-# 添加任务到数据库
-@app.route('/add_task', methods=['POST'])
-def add_task_to_supabase():
-    task_data = request.json
-    response = supabase.table('Tasks').insert({
-        'title': task_data['title'],
-        'notes': task_data['notes'],
-        'emergency': task_data['emergency'],
-        'importance': task_data['importance'],
-        'difficulty': task_data['difficulty'],
-        'estimated_time': task_data['estimated_time'],
-    }, returning='representation').execute()
-    return jsonify({'status': 'success', 'id': response.data[0]['id']})
-
-# 从数据库中读取一个任务
-@app.route('/get_task/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    response = supabase.table('Tasks').select('*').eq('id', task_id).execute()
-    task = response.data[0]
-    return jsonify(task)
-
-# 更新数据库的任务
-@app.route('/update_task/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    data = request.json  # 从请求中获取要更新的数据
-
-    # 更新 Supabase 中的任务
-    response = supabase.table('Tasks').update(data).eq('id', task_id).execute()
-
-    if response.data[0]['id'] == task_id:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'error'})
-
-# 从数据库中删除任务
-@app.route('/delete_task/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    response = supabase.table('Tasks').delete().eq('id', task_id).execute()
-    if response.data[0]['id'] == task_id:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'error'})
-
 # 从数据库中完成任务
 @app.route('/finish_task/<int:task_id>', methods=['PUT'])
 def finish_task(task_id):
@@ -98,7 +55,6 @@ def get_all_tasks():
     
     return jsonify(task_list)
 
-
 # =========================================================
 # 保存每日时间和发放勋章
 @app.route('/save_time', methods=['POST'])
@@ -132,7 +88,6 @@ def get_time_data():
     else:
         return jsonify({'status': 'error', 'message': '数据获取失败'})
 
-
 # =========================================================
 # 更新道具
 @app.route('/update_items', methods=['POST'])
@@ -149,24 +104,88 @@ def update_items():
     else:
         return jsonify({'status': 'error', 'message': '更新失败'})
 
-
+# =========================================================
 # 首页路由
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 # To-Dos页路由
 @app.route('/tracking/todos')
 def todos():
     return render_template('todos.html')
 
+# Habits页路由
+@app.route('/tracking/habits')
+def habits():
+    return render_template('habits.html')
 
 # Research页路由
 @app.route('/tracking/research')
 def research():
     return render_template('research.html')
 
+# Pokedex页路由
+@app.route('/pokedex')
+def pokedex():
+    return render_template('pokedex.html')
+
+# =========================================================================
+@app.route('/fetch_tasks', methods=['GET'])
+def fetch_tasks():
+    response = supabase.table('Tasks').select('*').execute()
+    return jsonify(response.data)
+
+@app.route('/create_task', methods=['POST'])
+def create_task():
+    task_data = request.json
+    response = supabase.table('Tasks').insert({
+        'id': task_data['id'],
+        'title': task_data['title'],
+        'notes': task_data['notes'],
+        'emergency': task_data['emergency'],
+        'importance': task_data['importance'],
+        'difficulty': task_data['difficulty'],
+        'estimated_time': task_data['estimated_time'],
+        'created_at': task_data['created_at'],
+        'is_finished': task_data['is_finished'],
+    }, returning='representation').execute()
+    if response.data:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '创建任务失败'})
+
+@app.route('/delete_task/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    response = supabase.table('Tasks').delete().eq('id', task_id).execute()
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
+
+@app.route('/update_task/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    data = request.json  # 从请求中获取要更新的数据
+
+    # 更新 Supabase 中的任务
+    response = supabase.table('Tasks').update(data).eq('id', task_id).execute()
+
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
+
+# =========================================================================
+@app.route('/api/pokedex', methods=['GET'])
+def fetch_pokemons():
+    response = supabase.table('Pokedex').select('*').execute()
+    # print(response.data)
+    return jsonify(response.data)
+
+@app.route('/fetch_pokedex', methods=['GET'])
+def fetch_pokedex():
+    response = supabase.table('Pokedex').select('*').execute()
+    return jsonify(response.data)
 
 if __name__ == '__main__':
     app.run(debug=True)

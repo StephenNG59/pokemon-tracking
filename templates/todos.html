@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToDos | Pokémon Tracker</title>
-    <!-- 引入Bootswatch: Darkly主题 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToDos | Pokémon Tracker</title>
+  <!-- 引入Bootswatch: Darkly主题 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -25,12 +25,12 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarTracking">
             <li><a class="dropdown-item" href="/tracking/research">Research</a></li>
-            <li><a class="dropdown-item" href="#">Habits</a></li>
+            <li><a class="dropdown-item" href="/tracking/habits">Habits</a></li>
             <li><a class="dropdown-item" href="/tracking/todos">To-Dos</a></li>
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Pokédex</a>
+          <a class="nav-link" href="/pokedex">Pokédex</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#">Shops</a>
@@ -45,104 +45,24 @@
 <!-- 主内容区域 -->
 <div class="container mt-4">
   <h1 class="text-primary mb-4">To-Dos</h1>
-  
-  <!-- =========================================================== -->
+
   <!-- 任务输入框 -->
   <form id="todo-form" class="mb-3">
+  <!-- </form> -->
     <div class="input-group d-flex align-items-center">
       <input type="text" class="form-control" id="task-title" placeholder="Task title...">
       <button class="btn btn-secondary" type="button" id="toggle-details">
-      <!-- <button class="btn btn-secondary" type="button" id="toggle-details" data-bs-toggle="collapse" data-bs-target="#task-details" aria-expanded="false" aria-controls="task-details"> -->
         Toggle Details
       </button>
       <button class="btn btn-success" type="button" id="add-task">Add Task</button>
     </div>
   </form>
 
-  <!-- =========================================================== -->
-  <!-- 可展开的内容（已弃用）：Notes, Importance, Difficulty, Estimated Time -->
-  <!--
-  <div class="collapse mb-2" id="task-details">
-    <div class="card card-body gap-1">
-      <form>
-        Notes 备注
-        <div class="mb-1">
-          <label for="task-notes" class="form-label">Notes</label>
-          <textarea class="form-control" id="task-notes" rows="2" placeholder="任务备注"></textarea>
-        </div>
-
-        Emergency 选择
-        <label style="width: 120px" class="me-2">Emergency</label>
-        <div class="btn-group my-1" role="group" aria-label="Emergency group">
-          <input type="radio" class="btn-check" name="task-emergency" id="emergency-low" autocomplete="off" checked="" value=1>
-          <label class="btn btn-outline-danger" for="emergency-low" style="width: 80px;">Low</label>
-
-          <input type="radio" class="btn-check" name="task-emergency" id="emergency-medium" autocomplete="off" value=2>
-          <label class="btn btn-outline-danger" for="emergency-medium" style="width: 100px;">Medium</label>
-
-          <input type="radio" class="btn-check" name="task-emergency" id="emergency-high" autocomplete="off" value=3>
-          <label class="btn btn-outline-danger" for="emergency-high" style="width: 100px;">High</label>
-
-          <input type="radio" class="btn-check" name="task-emergency" id="emergency-critical" autocomplete="off" value=4>
-          <label class="btn btn-outline-danger" for="emergency-critical" style="width: 120px;">Critical</label>
-        </div>
-        <br>
-
-        Importance 选择
-        <label style="width: 120px" class="me-2">Importance</label>
-        <div class="btn-group my-1" role="group" aria-label="Importance group">
-          <input type="radio" class="btn-check" name="task-importance" id="importance-low" autocomplete="off" checked="" value=1>
-          <label class="btn btn-outline-warning" for="importance-low" style="width: 80px;">Low</label>
-
-          <input type="radio" class="btn-check" name="task-importance" id="importance-medium" autocomplete="off" value=2>
-          <label class="btn btn-outline-warning" for="importance-medium" style="width: 100px;">Medium</label>
-
-          <input type="radio" class="btn-check" name="task-importance" id="importance-high" autocomplete="off" value=3>
-          <label class="btn btn-outline-warning" for="importance-high" style="width: 100px;">High</label>
-
-          <input type="radio" class="btn-check" name="task-importance" id="importance-critical" autocomplete="off" value=4>
-          <label class="btn btn-outline-warning" for="importance-critical" style="width: 120px;">Critical</label>
-        </div>
-        <br>
-
-        Difficulty 选择
-        <label style="width: 120px" class="me-2">Difficulty</label>
-        <div class="btn-group my-1" role="group" aria-label="Difficulty group">
-          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-easy" autocomplete="off" checked="" value=1>
-          <label class="btn btn-outline-info" for="difficulty-easy" style="width: 80px;">Easy</label>
-
-          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-medium" autocomplete="off" value=2>
-          <label class="btn btn-outline-info" for="difficulty-medium" style="width: 100px;">Medium</label>
-
-          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-hard" autocomplete="off" value=3>
-          <label class="btn btn-outline-info" for="difficulty-hard" style="width: 100px;">Hard</label>
-
-          <input type="radio" class="btn-check" name="task-difficulty" id="difficulty-very-hard" autocomplete="off" value=4>
-          <label class="btn btn-outline-info" for="difficulty-very-hard" style="width: 120px;">Very Hard</label>
-        </div>
-        <br>
-
-        Estimated Time (使用选择框实现)
-        <div class="mb-1 d-flex align-items-center">
-          <label for="task-time" class="form-label me-2" style="width: 120px">Estimated Time</label>
-          <select class="form-select w-auto my-1" id="task-time">
-            <option value="15">15 分钟</option>
-            <option value="30">30 分钟</option>
-            <option value="60">1 小时</option>
-            <option value="90">1.5 小时</option>
-            <option value="120">2 小时</option>
-          </select>
-        </div>
-      </form>
-    </div>
-  </div>
--->
-
-  <!-- =========================================================== -->
   <!-- 显示未完成的任务 -->
   <div class="accordion mt-4" id="unfinished-task-list">
     <h2 class="d-flex justify-content-between">
       Unfinished
+      <!-- 排序按钮 -->
       <div class="btn-group" role="group" aria-label="Sorting group">
         <input type="radio" class="btn-check sort-btn" name="unfinished-sort" id="unfinished-sort-btn-created-at" data-sort="created_at" autocomplete="off" checked="">
         <label class="btn btn-outline-light" for="unfinished-sort-btn-created-at">📅</label>
@@ -168,9 +88,8 @@
     </ul>
   </div>
 
-  <!-- =========================================================== -->
   <!-- 显示已完成的任务 -->
-  <div class="accordion mt-4" id="finished-task-list">
+  <div class="accordion mt-4 mb-5" id="finished-task-list">
     <h2 class="d-flex justify-content-between">
       Finished
       <div class="btn-group" role="group" aria-label="Sorting group">
@@ -200,7 +119,26 @@
 </div>
 
 
-<!-- =========================================================== -->
+<!-- 确认删除的模态框 -->
+<div class="modal fade" id="modal-delete-confirm" tabindex="-1" aria-labelledby="modal-delete-confirm-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-delete-confirm-label">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this task?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- 通用任务 Modal -->
 <div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="task-modal-label" aria-hidden="true">
   <div class="modal-dialog">
@@ -294,358 +232,21 @@
 
 
 <!-- =========================================================== -->
+<!-- JavaScript逻辑 -->
 <!-- 引入Bootstrap的JS组件 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- =========================================================== -->
-<!-- JavaScript逻辑（用于添加任务） -->
+<script src="{{ url_for('static', filename='js/command.js') }}"></script>
 <script>
+
+const commandManager = new CommandManager();
+
+// ========================================================
 // 排序方向，默认为降序
 let unfinishedSortDirection = 'desc';
 let finishedSortDirection = 'desc';
-
 // 排序属性，默认为 'created_at'
 let unfinishedSortAttribute = 'created_at';
 let finishedSortAttribute = 'created_at';
-
-// 保存任务到服务器
-function saveTaskToServer(task) {
-  // 生成临时 id 并立即显示任务
-  const tempId = `temp-${Date.now()}`;
-  task.id = tempId;
-  displayTask(task, 'unfinished-task-list');
-
-  fetch('/add_task', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(task),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      // 把真实 id 更新到 DOM 中
-      const realId = data.id;
-      const listItem = document.querySelector(`#heading-${task.id}`);  // 找到任务 DOM 元素
-      if (listItem) {
-        // 更新 DOM 中的 id 相关属性
-        listItem.id = `heading-${realId}`;
-        const button = listItem.querySelector('button');
-        button.setAttribute('data-bs-target', `#collapse-${realId}`);
-
-        const collapseDiv = listItem.nextElementSibling;
-        collapseDiv.id = `collapse-${realId}`;
-        collapseDiv.setAttribute('aria-labelledby', `heading-${realId}`);
-
-        const finishBtn = collapseDiv.querySelector('.finish-task');
-        const updateBtn = collapseDiv.querySelector('.update-task');
-        const deleteBtn = collapseDiv.querySelector('.delete-task');
-        if (finishBtn) finishBtn.setAttribute('data-task-id', realId);
-        if (updateBtn) updateBtn.setAttribute('data-task-id', realId);
-        deleteBtn.setAttribute('data-task-id', realId);
-
-        task.id = realId;
-      }
-    } else {
-      alert('创建任务失败');
-    }
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
-}
-
-// 格式化时间戳 yyyy/mm/dd
-function formatDate(timestamp) {
-  const date = new Date(timestamp);
-  const year = String(date.getFullYear());  // 获取后两位年份
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
-}
-
-// 显示任务函数
-function displayTask(task, listId) {
-  const taskList = document.getElementById(listId).querySelector('ul');
-  const listItem = document.createElement('div');
-  listItem.classList.add('accordion-item');
-
-  // 任务创建时间
-  const formattedCreatedAt = formatDate(task.created_at);
-  const formattedFinishedAt = task.is_finished ? formatDate(task.finished_at) : '';
-
-  // 获取Emergency,Importance,Difficulty的符号表示
-  const emergencySymbol = (task.emergency === 1 ? '🔥' : 
-                          task.emergency === 2 ? '🔥🔥' : 
-                          task.emergency === 3 ? '🔥🔥🔥' : 
-                          task.emergency === 4 ? '🔥🔥🔥🔥' :
-                          task.emergency);
-  const importanceSymbol = (task.importance === 1 ? '⭐' :
-                           task.importance === 2 ? '⭐⭐' :
-                           task.importance === 3 ? '⭐⭐⭐' : 
-                           task.importance === 4 ? '⭐⭐⭐⭐' : 
-                           task.importance);
-  const difficultySymbol = (task.difficulty === 1 ? '🔮' :
-                           task.difficulty === 2 ? '🔮🔮' : 
-                           task.difficulty === 3 ? '🔮🔮🔮' : 
-                           task.difficulty === 4 ? '🔮🔮🔮🔮' :
-                           task.difficulty); 
-
-  // 把Notes中的换行符替换为HTML的换行标签
-  const formattedNotes = task.notes.replace(/\n/g, '<br>');
-
-  // 任务显示
-  listItem.innerHTML = `
-    <h2 class="accordion-header" id="heading-${task.id}">
-      <button class="accordion-button collapsed task-item" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${task.id}" aria-expanded="false" aria-controls="collapse-${task.title}">
-        <span class="accordion-title" style="width: 200px; overflow: hidden; text-overflow: ellipsis;">${task.title}</span>
-        <span class="emergency-symbol" style="width: 120px;">${emergencySymbol}</span>
-        <span class="importance-symbol" style="width: 120px;">${importanceSymbol}</span>
-        <span class="difficulty-symbol" style="width: 120px;">${difficultySymbol}</span>
-        <span class="accordion-time" style="width: 80px;">${task.estimated_time}min</span>
-      </button>
-    </h2>
-    <div id="collapse-${task.id}" class="accordion-collapse collapse" aria-labelledby="heading-${task.id}" data-bs-parent="#${listId}">
-      <div class="accordion-body">
-        <p style="white-space: pre-wrap; word-wrap: break-word;">${task.notes || '这个人很懒，什么都没有写'}</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <small class="created-at me-4 card-footer text-muted">Created:${formattedCreatedAt}</small>
-          ${task.is_finished ? `<small class="finished-at me-auto card-footer text-muted">Finished:${formattedFinishedAt}</small>` : ''}
-          <div class="d-flex justify-content-end align-items-center">
-            ${task.is_finished ? '' : `
-            <button class="btn btn-success float-end finish-task px-5 mx-1" data-task-id="${task.id}">✔</button>
-            <button class="btn btn-info    float-end update-task px-3 mx-1" data-task-id="${task.id}">✏</button>
-            <label class="separate-mark">|</label>
-            `}
-            <button class="btn btn-danger float-end delete-task px-3 mx-1" data-task-id="${task.id}">🗑</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 添加到任务列表
-  taskList.appendChild(listItem);
-}
-
-// 通过 Modal 创建任务的函数
-function createTask() {
-  const taskTitle = document.getElementById('modal-task-title').value.trim();
-  const taskNotes = document.getElementById('task-notes').value.trim();
-  const taskEmergency = Number(document.querySelector('input[name="task-emergency"]:checked').value);
-  const taskImportance = Number(document.querySelector('input[name="task-importance"]:checked').value);
-  const taskDifficulty = Number(document.querySelector('input[name="task-difficulty"]:checked').value);
-  const taskEstimatedTime = Number(document.getElementById('task-time').value);
-
-  const task = {
-    title: taskTitle,
-    notes: taskNotes,
-    emergency: taskEmergency,
-    importance: taskImportance,
-    difficulty: taskDifficulty,
-    estimated_time: taskEstimatedTime,
-    created_at: Date.now(),
-  };
-
-  // 发送任务到后端
-  saveTaskToServer(task);
-
-  // 清空表单内容
-  document.getElementById('modal-task-title').value = '';
-  document.getElementById('task-notes').value = '';
-  document.getElementById('task-time').value = '15';
-  document.getElementById('emergency-low').checked = true;
-  document.getElementById('importance-low').checked = true;
-  document.getElementById('difficulty-easy').checked = true;
-
-  // 隐藏 Modal
-  const taskModal = bootstrap.Modal.getInstance(document.getElementById('task-modal'));
-  taskModal.hide();
-}
-
-// 删除任务的函数
-function deleteTask(taskId) {
-  // 从页面移除任务
-  const taskItem = document.querySelector(`[data-task-id="${taskId}"]`).closest('.accordion-item');
-  if (taskItem) {
-    taskItem.remove();  // 从 DOM 中移除任务元素
-  }
-
-  fetch(`/delete_task/${taskId}`, {
-    method: 'DELETE',
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      // 如果在这里从页面移除任务, 会显得非常迟钝
-    } else {
-      alert('删除任务失败');
-    }
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
-}
-
-// 完成任务的函数
-function finishTask(taskId) {
-  // 移动任务到 Finished 列表
-  moveTaskToFinished(taskId);
-
-  const finishedAt = new Date().toISOString();
-
-  // 更新数据库，将 is_finished 设为 true，并记录完成时间
-  fetch(`/finish_task/${taskId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({is_finished: true, finished_at: finishedAt}),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      // 如果在这里移动任务到 Finished 列表, 会显得非常迟钝
-    } else {
-      alert('更新任务状态失败');
-    }
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
-}
-
-// 移动任务到 Finished 列表
-function moveTaskToFinished(taskId) {
-  const taskItem = document.querySelector(`[data-task-id="${taskId}"]`).closest('.accordion-item');
-  if (taskItem) {
-    // 1. 删除 update-task, finish-task 按钮
-    const updateButton = taskItem.querySelector('.update-task');
-    const finishButton = taskItem.querySelector('.finish-task');
-    const separateMark = taskItem.querySelector('.separate-mark');
-
-    if (updateButton) {
-      updateButton.remove();
-    }
-    if (finishButton) {
-      finishButton.remove();
-    }
-    if (separateMark) {
-      separateMark.remove();
-    }
-
-    // 2. 自动折叠任务的 accordion
-    const collapseDiv = taskItem.querySelector('.accordion-collapse');
-    if (collapseDiv) {
-      let collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseDiv);
-      collapseInstance.hide();  // 折叠 accordion
-    }
-
-    // 3. 增加 Finished time
-    const formattedFinishedAt = formatDate(Date.now());
-    collapseDiv.querySelector('small').insertAdjacentHTML('afterend', 
-      `<small class="me-auto card-footer text-muted">Finished:${formattedFinishedAt}</small>`)
-
-    // 4. 将任务从 Unfinished 列表移动到 Finished 列表
-    taskItem.remove();
-    document.getElementById('finished-task-list').querySelector('ul').appendChild(taskItem);
-
-  }
-}
-
-// 更新任务的函数
-function updateTask(taskId) {
-  const taskTitle = document.getElementById('modal-task-title').value.trim();
-  const taskNotes = document.getElementById('task-notes').value.trim();
-  const taskEmergency = Number(document.querySelector('input[name="task-emergency"]:checked').value);
-  const taskImportance = Number(document.querySelector('input[name="task-importance"]:checked').value);
-  const taskDifficulty = Number(document.querySelector('input[name="task-difficulty"]:checked').value);
-  const taskEstimatedTime = Number(document.getElementById('task-time').value);
-
-  const updatedTask = {
-    title: taskTitle,
-    notes: taskNotes,
-    emergency: taskEmergency,
-    importance: taskImportance,
-    difficulty: taskDifficulty,
-    estimated_time: taskEstimatedTime
-  };
-
-  // 更新 DOM 中的任务
-  updateTaskInDOM(taskId, updatedTask);
-
-  // 发送更新请求到后端
-  fetch(`/update_task/${taskId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updatedTask),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      // 如果在这里更新 DOM 中的任务, 会显得非常迟钝
-    } else {
-      alert('更新任务失败');
-    }
-  })
-  .catch(error => console.error('Error:', error));
-
-  // 清空表单内容
-  document.getElementById('modal-task-title').value = '';
-  document.getElementById('task-notes').value = '';
-  document.getElementById('task-time').value = '15';
-  document.getElementById('emergency-low').checked = true;
-  document.getElementById('importance-low').checked = true;
-  document.getElementById('difficulty-easy').checked = true;
-
-  // 隐藏 Modal
-  const taskModal = bootstrap.Modal.getInstance(document.getElementById('task-modal'));
-  taskModal.hide();
-}
-
-// 更新任务在 DOM 中的显示
-function updateTaskInDOM(taskId, updatedTask) {
-  const listItem = document.querySelector(`#heading-${taskId}`);
-
-  if (listItem) {
-    // 更新 Title
-    const titleElement = listItem.querySelector('.accordion-title');
-    titleElement.textContent = updatedTask.title;
-    
-    // 更新 Emergency symbol
-    const emergencySymbol = updatedTask.emergency === 1 ? '🔥' : 
-                            updatedTask.emergency === 2 ? '🔥🔥' : 
-                            updatedTask.emergency === 3 ? '🔥🔥🔥' : 
-                            updatedTask.emergency === 4 ? '🔥🔥🔥🔥' : updatedTask.emergency;
-    listItem.querySelector('.emergency-symbol').textContent = emergencySymbol;
-
-    // 更新 Importance symbol
-    const importanceSymbol = updatedTask.importance === 1 ? '⭐' :
-                             updatedTask.importance === 2 ? '⭐⭐' :
-                             updatedTask.importance === 3 ? '⭐⭐⭐' : 
-                             updatedTask.importance === 4 ? '⭐⭐⭐⭐' : updatedTask.importance;
-    listItem.querySelector('.importance-symbol').textContent = importanceSymbol;
-    
-    // 更新 Difficulty symbol
-    const difficultySymbol = updatedTask.difficulty === 1 ? '🔮' :
-                             updatedTask.difficulty === 2 ? '🔮🔮' : 
-                             updatedTask.difficulty === 3 ? '🔮🔮🔮' : 
-                             updatedTask.difficulty === 4 ? '🔮🔮🔮🔮' : updatedTask.difficulty;
-    listItem.querySelector('.difficulty-symbol').textContent = difficultySymbol;
-
-    // 更新 Estimated time
-    listItem.querySelector('.accordion-time').textContent = `${updatedTask.estimated_time}min`;
-
-    // 更新 Notes
-    const collapseDiv = document.querySelector(`#collapse-${taskId}`);
-    const notesElement = collapseDiv.querySelector('p');
-    notesElement.innerHTML = updatedTask.notes.replace(/\n/g, '<br>');
-  }
-}
-
 // 排序任务
 function sortTasks(listType, attribute, direction) {
   const taskList = document.getElementById(`${listType}-task-list`).querySelector('ul');
@@ -667,7 +268,6 @@ function sortTasks(listType, attribute, direction) {
   taskList.innerHTML = '';
   tasks.forEach(task => taskList.appendChild(task));
 }
-
 // 获取任务的属性值
 function getTaskValue(task, attribute) {
   if (attribute === 'created_at') {
@@ -683,8 +283,7 @@ function getTaskValue(task, attribute) {
   }
   return 0;
 }
-
-// 次级排序：Emergency > Importance > Difficulty > Estimated Time > Created At
+// 次级排序：Emerg > Import > Diffi > Esti Time > Creat At
 function secondarySort(a, b, direction) {
   const attributes = ['emergency', 'importance', 'difficulty', 'time', 'created_at'];
   for (const attr of attributes) {
@@ -697,214 +296,6 @@ function secondarySort(a, b, direction) {
   }
   return 0;  // 如果完全相同
 }
-
-// 页面加载时
-document.addEventListener('DOMContentLoaded', function () {
-  // 在页面加载时折叠任务详情部分
-  let taskDetails = document.querySelector('#task-details');
-  if (taskDetails) {
-    // 直接调用 collapse('hide') 来折叠
-    // taskDetails.classList.remove('show');  // 移除可能的 'show' class
-    new bootstrap.Collapse(taskDetails, {
-      toggle: false  // 防止默认展开
-    }).hide();  // 隐藏 task-details
-  }
-
-  // 页面加载时获取并显示任务
-  fetch('/tasks')
-  .then(response => response.json())
-  .then(tasks => {
-    tasks.forEach(task => {
-      if (task.is_finished) {
-        displayTask(task, 'finished-task-list');
-      } else {
-        displayTask(task, 'unfinished-task-list');
-      }
-    });
-  })
-  .catch(error => console.error('Error:', error));
-
-});
-
-// 展开创建任务详情 -- 点击 Toggle Details
-document.getElementById('toggle-details').addEventListener('click', function() {
-  // 更新 Modal 的标题和按钮
-  document.getElementById('task-modal-label').textContent = 'New Task';
-  document.getElementById('modal-save-btn').textContent = 'Create';
-
-  // 清空表单内容
-  document.getElementById('task-notes').value = '';
-  document.getElementById('task-time').value = '15';
-  document.getElementById('emergency-low').checked = true;
-  document.getElementById('importance-low').checked = true;
-  document.getElementById('difficulty-easy').checked = true;
-
-  // 显示 Modal
-  const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
-  taskModal.show();
-
-  // 设置保存按钮的功能为创建任务
-  document.getElementById('modal-save-btn').onclick = function() {
-    createTask();  // 调用创建任务的函数
-  };
-});
-
-// 点击创建任务 -- 点击 Add Task
-document.getElementById('add-task').addEventListener('click', function() {
-  const taskTitle = document.getElementById('task-title').value.trim();
-  const taskNotes = document.getElementById('task-notes').value.trim();
-  const taskEmergency = Number(document.querySelector('input[name="task-emergency"]:checked')?.value);
-  const taskImportance = Number(document.querySelector('input[name="task-importance"]:checked')?.value);
-  const taskDifficulty = Number(document.querySelector('input[name="task-difficulty"]:checked')?.value);
-  const taskEstimatedTime = Number(document.getElementById('task-time').value);
-  const taskCreatedAt = Date.now();
-  
-  if (!taskTitle) {
-    alert("请填写任务标题");
-    return;
-  }
-
-  // 创建任务对象
-  const task = {
-    title: taskTitle,
-    notes: taskNotes,
-    emergency: taskEmergency,
-    importance: taskImportance,
-    difficulty: taskDifficulty,
-    created_at: taskCreatedAt,
-    estimated_time: taskEstimatedTime
-  };
-  // 保存任务到服务器
-  saveTaskToServer(task);
-
-  // // 调用显示任务的函数
-  // displayTask(task);
-
-  // 清空表单内容
-  document.getElementById('task-title').value = '';
-  document.getElementById('task-notes').value = '';
-  document.getElementById('task-time').value = '15';
-  document.getElementById('emergency-low').checked = true;
-  document.getElementById('importance-low').checked = true;
-  document.getElementById('difficulty-easy').checked = true;
-
-
-  // // 手动触发折叠填写任务详情部分
-  // let taskDetails = document.querySelector('#task-details');
-  // if (taskDetails) {
-  //   // 获取或创建 Collapse 实例，并将其折叠
-  //   let collapseInstance = bootstrap.Collapse.getOrCreateInstance(taskDetails);
-  //   collapseInstance.hide();  // 自动折叠填写部分
-  // }
-});
-
-// 键盘快捷创建任务 -- 标题框输入回车
-document.getElementById('task-title').addEventListener('keydown', function(event) {
-  // 检测是否按下了Enter键（key code 13）
-  if (event.key === 'Enter' || event.keyCode === 13) {
-    event.preventDefault(); // 阻止表单的默认提交行为
-    document.getElementById('add-task').click(); // 触发Add Task按钮的点击事件
-  }
-});
-
-// 点击删除任务
-document.addEventListener('click', function(event) {
-  if (event.target.classList.contains('delete-task')) {
-    const taskId = event.target.getAttribute('data-task-id');
-
-    // 弹出确认窗口
-    if (confirm('你确定要删除这个任务吗？')) {
-      deleteTask(taskId);  // 执行删除任务的逻辑
-    }
-  }
-});
-
-// 点击完成任务
-document.addEventListener('click', function(event) {
-  if (event.target.classList.contains('finish-task')) {
-    const taskId = event.target.getAttribute('data-task-id');
-    finishTask(taskId);
-  }
-});
-
-// 点击更新任务
-document.addEventListener('click', function(event) {
-  if (event.target.classList.contains('update-task')) {
-    const taskId = event.target.getAttribute('data-task-id');
-
-    /* // method-A. 根据 taskId **从数据库中**获取任务数据并填充表单
-    fetch(`/get_task/${taskId}`)
-    .then(response => response.json())
-    .then(task => {
-      // 更新 Modal 的标题和按钮
-      document.getElementById('task-modal-label').textContent = 'Edit Task';
-      document.getElementById('modal-save-btn').textContent = 'Save';
-      
-      // 填充表单内容
-      document.getElementById('modal-task-title').value = task.title;
-      document.getElementById('task-notes').value = task.notes;
-      document.querySelector(`input[name="task-emergency"][value="${task.emergency}"]`).checked = true;
-      document.querySelector(`input[name="task-importance"][value="${task.importance}"]`).checked = true;
-      document.querySelector(`input[name="task-difficulty"][value="${task.difficulty}"]`).checked = true;
-      document.getElementById('task-time').value = task.estimated_time;
-      
-      // 显示 Modal
-      const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
-      taskModal.show();
-      
-      // 设置保存按钮的功能为保存编辑
-      document.getElementById('modal-save-btn').onclick = function() {
-        updateTask(taskId);  // 调用更新任务的函数
-      };
-    })
-    .catch(error => console.error('Error:', error));*/
-
-    // method-B. 根据 taskId **从当前 DOM 中**获取任务数据并填充表单
-    const listItem = document.querySelector(`#heading-${taskId}`);  // 找到任务 DOM 元素
-    if (listItem) {
-      // 更新 Modal 的标题和按钮
-      document.getElementById('task-modal-label').textContent = 'Edit Task';
-      document.getElementById('modal-save-btn').textContent = 'Save';
-
-      // 从 DOM 中获取 Title
-      const taskTitle = listItem.querySelector('.accordion-title').textContent;
-
-      // 从 DOM 中获取 Emergency, Importance, Difficulty
-      const taskEmergencySymbol = listItem.querySelector('.emergency-symbol').textContent;
-      const taskImportanceSymbol = listItem.querySelector('.importance-symbol').textContent;
-      const taskDifficultySymbol = listItem.querySelector('.difficulty-symbol').textContent;
-      const taskEmergency = [...taskEmergencySymbol].length
-      const taskImportance = [...taskImportanceSymbol].length
-      const taskDifficulty = [...taskDifficultySymbol].length
-
-      // 从 DOM 中获取 Estimated Time
-      const taskEstimatedTime = Number(listItem.querySelector('.accordion-time').textContent.slice(0, -3));  // 去掉 min
-
-      // 从 DOM 中获取 Notes
-      const collapseDiv = listItem.nextElementSibling;
-      const taskNotes = collapseDiv.querySelector('p').textContent;
-
-      // 填充表单内容
-      document.getElementById('modal-task-title').value = taskTitle;
-      document.getElementById('task-notes').value = taskNotes;
-      document.querySelector(`input[name="task-emergency"][value="${taskEmergency}"]`).checked = true;
-      document.querySelector(`input[name="task-importance"][value="${taskImportance}"]`).checked = true;
-      document.querySelector(`input[name="task-difficulty"][value="${taskDifficulty}"]`).checked = true;
-      document.getElementById('task-time').value = taskEstimatedTime;
-
-      // 显示 Modal
-      const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
-      taskModal.show();
-      
-      // 设置保存按钮的功能为保存编辑
-      document.getElementById('modal-save-btn').onclick = function() {
-        updateTask(taskId);  // 调用更新任务的函数
-      };
-    }
-
-  }
-});
-
 // 点击排序按钮 -- 属性
 document.querySelectorAll('.sort-btn').forEach(button => {
   button.addEventListener('click', function() {
@@ -920,7 +311,6 @@ document.querySelectorAll('.sort-btn').forEach(button => {
     }
   });
 });
-
 // 点击排序按钮 -- 正序/倒序
 document.querySelectorAll('.sort-direction').forEach(button => {
   button.addEventListener('click', function() {
@@ -938,7 +328,182 @@ document.querySelectorAll('.sort-direction').forEach(button => {
   });
 });
 
+// ========================================================
+// 页面加载时
+document.addEventListener('DOMContentLoaded', function () {
+  const fetchTasksCommand = new FetchTasksCommand();
+  commandManager.executeCommand(fetchTasksCommand);
+})
+
+// 点击快捷创建任务 Add Task
+document.getElementById('add-task').addEventListener('click', function() {
+  // 唯一需要提供的是 title
+  const taskTitle = document.getElementById('task-title').value.trim();
+  if (!taskTitle) {
+    alert("请填写任务标题");
+    return;
+  }
+
+  const task = {
+    title: taskTitle,
+    notes: '',
+    emergency: 1,
+    importance: 1,
+    difficulty: 1,
+    is_finished: false,
+    created_at: new Date().toISOString(),
+    estimated_time: 15,
+  };
+  const addTaskCommand = new AddTaskCommand(task);
+  commandManager.executeCommand(addTaskCommand);
+})
+
+// Enter 快捷创建任务
+document.getElementById('task-title').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' || event.keyCode === 13) {
+    event.preventDefault();  // 阻止表单的默认提交行为
+    document.getElementById('add-task').click();  // Toggle [Add Task] click
+  }
+})
+
+// 点击展开详情创建任务
+document.getElementById('toggle-details').addEventListener('click', function() {
+  // 更新 Modal 的标题和按钮
+  document.getElementById('task-modal-label').textContent = 'New Task';
+  document.getElementById('modal-save-btn').textContent = 'Create';
+
+  // 显示 Modal
+  const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
+  taskModal.show();
+
+  // 设置保存按钮的功能为创建任务
+  document.getElementById('modal-save-btn').onclick = function() {
+    const taskTitle = document.getElementById('modal-task-title').value.trim();
+    if (!taskTitle) {
+      alert("请填写任务标题");
+      return;
+    }
+    const taskNotes = document.getElementById('task-notes').value.trim();
+    const taskEmergency = Number(document.querySelector('input[name="task-emergency"]:checked').value);
+    const taskImportance = Number(document.querySelector('input[name="task-importance"]:checked').value);
+    const taskDifficulty = Number(document.querySelector('input[name="task-difficulty"]:checked').value);
+    const taskEstimatedTime = Number(document.getElementById('task-time').value);
+
+    const task = {
+      title: taskTitle,
+      notes: taskNotes,
+      emergency: taskEmergency,
+      importance: taskImportance,
+      difficulty: taskDifficulty,
+      estimated_time: taskEstimatedTime,
+      is_finished: false,
+      created_at: new Date().toISOString(),
+    };
+
+    const addTaskCommand = new AddTaskCommand(task);
+    commandManager.executeCommand(addTaskCommand);
+
+    // 隐藏 Modal
+    const taskModal = bootstrap.Modal.getInstance(document.getElementById('task-modal'));
+    taskModal.hide();
+  };
+})
+
+// 点击删除任务
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('delete-task')) {
+    // 获得任务的 id 注意需要转换类型否则无法有效删除 IndexedDB 的数据
+    const taskId = Number(event.target.getAttribute('data-task-id'));
+
+    const confirmModal = new bootstrap.Modal(document.getElementById('modal-delete-confirm'));
+    confirmModal.show();
+
+    document.getElementById('confirm-delete-btn').onclick = function() {
+      const deleteTaskCommand = new DeleteTaskCommand(taskId);
+      commandManager.executeCommand(deleteTaskCommand);
+      confirmModal.hide();
+    }
+  }
+});
+
+// 点击修改任务
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('update-task')) {
+    // 获得任务的 id 注意需要转换类型才能用于 IndexedDB
+    const taskId = Number(event.target.getAttribute('data-task-id'));
+    
+    // 找到任务 DOM 元素并从中获取信息
+    const listItem = document.querySelector(`#heading-${taskId}`);
+    if (listItem) {
+      // 更新 Modal 的标题和按钮
+      document.getElementById('task-modal-label').textContent = 'Edit Task';
+      document.getElementById('modal-save-btn').textContent = 'Save';
+
+      // 获取 Title
+      const taskTitle = listItem.querySelector('.accordion-title').textContent;
+
+      // 获取 Emergency, Importance, Difficulty
+      const taskEmergencySymbol = listItem.querySelector('.emergency-symbol').textContent;
+      const taskImportanceSymbol = listItem.querySelector('.importance-symbol').textContent;
+      const taskDifficultySymbol = listItem.querySelector('.difficulty-symbol').textContent;
+      const taskEmergency = [...taskEmergencySymbol].length
+      const taskImportance = [...taskImportanceSymbol].length
+      const taskDifficulty = [...taskDifficultySymbol].length
+
+      // 获取 Estimated Time
+      const taskEstimatedTime = Number(listItem.querySelector('.accordion-time').textContent.slice(0, -3));  // 去掉 min
+
+      // 获取 Notes
+      const collapseDiv = listItem.nextElementSibling;
+      const taskNotes = collapseDiv.querySelector('p').textContent;
+
+      // 填充表单内容
+      document.getElementById('modal-task-title').value = taskTitle;
+      document.getElementById('task-notes').value = taskNotes;
+      document.querySelector(`input[name="task-emergency"][value="${taskEmergency}"]`).checked = true;
+      document.querySelector(`input[name="task-importance"][value="${taskImportance}"]`).checked = true;
+      document.querySelector(`input[name="task-difficulty"][value="${taskDifficulty}"]`).checked = true;
+      document.getElementById('task-time').value = taskEstimatedTime;
+
+      // 显示 Modal
+      const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
+      taskModal.show();
+
+      // 点击保存按钮则更新任务信息
+      document.getElementById('modal-save-btn').onclick = function() {
+        const taskData = {
+          'title': document.getElementById('modal-task-title').value.trim(),
+          'notes': document.getElementById('task-notes').value.trim(),
+          'emergency': Number(document.querySelector('input[name="task-emergency"]:checked').value),
+          'importance': Number(document.querySelector('input[name="task-importance"]:checked').value),
+          'difficulty': Number(document.querySelector('input[name="task-difficulty"]:checked').value),
+          'estimated_time': Number(document.getElementById('task-time').value),
+        };
+
+        // 更新任务信息
+        const updateTaskCommand = new UpdateTaskCommand(taskId, taskData);
+        commandManager.executeCommand(updateTaskCommand);
+
+        // 隐藏 Modal
+        taskModal.hide();
+      };
+    }
+
+  }
+})
+
+// 点击完成任务
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('finish-task')) {
+    // 获得任务的 id 注意需要转换类型
+    const taskId = Number(event.target.getAttribute('data-task-id'));
+    const finishedAt = new Date().toISOString();
+    const finishTaskCommand = new FinishTaskCommand(taskId, finishedAt);
+    commandManager.executeCommand(finishTaskCommand);
+  }
+});
+
+
 </script>
 
 </body>
-</html>
