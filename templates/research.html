@@ -6,34 +6,6 @@
   <title>Research | Pokémon Tracker</title>
   <!-- 引入Bootswatch: Darkly主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
-  <style>
-    #badge-container {
-      margin-top: 10px;
-    }
-
-    .badge-card {
-      position: relative;
-      margin: 0 10px;
-    }
-
-    .badge-img {
-      width: 80px;
-      height: auto;
-      object-fit: cover;
-    }
-
-    .badge-count {
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 2px 5px;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-  </style>
 </head>
 <body>
 
@@ -68,7 +40,6 @@
   </div>
 </nav>
 
-
 <!-- =========================================================== -->
 <!-- 主内容区域 -->
 <div class="container mt-4">
@@ -79,15 +50,16 @@
     <div id="badge-container" class="d-flex justify-content-start flex-wrap">
       <!-- 勋章展示区 -->
     </div>
-
-    <div>
-      <span class="badge bg-success">Day Badge 1</span>
-      <span class="badge bg-warning">Day Badge 2</span>
-      <span class="badge bg-danger">Day Badge 3</span>
-      <span>Accumulated: <span id="total-time">0</span> hours</span>
-    </div>
   </div>
-
+  
+  <!-- 展示今日时间 -->
+  <div class="container mt-4">
+    <h2 class="d-flex">
+      <span class="me-4">Today Time:</span>
+      <div id="today-research-time"></div>
+    </h2>
+  </div>
+  
   <!-- 计时器区域 -->
   <div class="container mt-4">
     <h2>Timer</h2>
@@ -121,14 +93,12 @@
   <!-- 可视化图表区域 -->
   <div class="container mt-4">
     <h2>Visualization</h2>
-    <canvas id="time-chart" class="mb-4" width="400" height="200"></canvas>
+    <canvas id="time-chart" class="mb-4" width="400" height="160"></canvas>
   </div>
-
 </div>
 
-
 <!-- =========================================================== -->
-<!-- Time Distribution Modal -->
+<!-- 分配时间的 Modal -->
 <div class="modal fade" id="time-distribution-modal" tabindex="-1" aria-labelledby="time-distribution-label" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -152,61 +122,32 @@
   </div>
 </div>
 
-
 <!-- =========================================================== -->
+<!-- JavaScript逻辑 -->
 <!-- 引入Bootstrap的JS组件 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- 引入Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="{{ url_for('static', filename='js/command.js') }}"></script>
 <script>
 
-const badges = [
-  { src: "{{ url_for('static', filename='imgs/badge1.png') }}", count: 3, level: 1 },
-  { src: "{{ url_for('static', filename='imgs/badge2.png') }}", count: 5, level: 2 },
-  { src: "{{ url_for('static', filename='imgs/badge3.png') }}", count: 2, level: 3 },
-  // 添加更多 badge 数据
-];
-
-function displayBadges() {
-  const container = document.getElementById('badge-container');
-  container.innerHTML = '';  // 清空之前的内容
-
-  badges.sort((a, b) => b.level - a.level);  // 按照 level 从大到小排序，越高级的越排左边
-
-  badges.forEach(badge => {
-    const badgeCard = document.createElement('div');
-    badgeCard.className = 'badge-card';
-
-    const img = document.createElement('img');
-    img.src = badge.src;
-    img.className = 'badge-img';
-    img.alt = `Badge ${badge.src}`;
-
-    const count = document.createElement('span');
-    count.className = 'badge-count';
-    count.textContent = badge.count;
-
-    badgeCard.appendChild(img);
-    badgeCard.appendChild(count);
-    container.appendChild(badgeCard);
-  });
-}
-
-
-
-
+const commandManager = new CommandManager();
 let timerInterval;
 let elapsedTime = 0;
-let addMinutes = 0;
-let timeType = 'timer';  // timer / manual
+let secondsToDistribute = 0;
+let dateToRecord;
 
-// 开始计时
+// ========================================================
+// 页面加载时
+document.addEventListener('DOMContentLoaded', function () {
+  const fetchResearchCommand = new FetchResearchCommand();
+  commandManager.executeCommand(fetchResearchCommand);
+})
+
+// 计时器开始计时
 function startTimer() {
-  const startTime = Date.now() - elapsedTime * 1000 - 60000; // 继续上次计时
+  const startTime = Date.now() - elapsedTime * 1000 - 60000;  // 继续上次计时
   timerInterval = setInterval(() => {
-    elapsedTime = Math.floor((Date.now() - startTime) / 1000); // 以秒为单位计算
-    document.getElementById('timer-display').textContent = formatTime(elapsedTime); // 更新页面上的计时器
+    elapsedTime = Math.floor((Date.now() - startTime) / 1000);  // 以秒为单位
+    document.getElementById('timer-display').textContent = formatTime(elapsedTime);  // 更新页面上的计时器
   }, 1000);
 }
 
@@ -217,41 +158,19 @@ function pauseTimer() {
 
 // 停止计时并分配时间
 function stopTimer() {
-  clearInterval(timerInterval);
-  timeType = 'timer';
-  distributeTime(elapsedTime); // 调用时间分配函数
+  pauseTimer();
+  secondsToDistribute = elapsedTime;
+  dateToRecord = new Date().toISOString().split('T')[0];  // .toJSON()?
+  distributeTime();
+
+  // 重置计时器显示
   elapsedTime = 0;
-  document.getElementById('timer-display').textContent = formatTime(0); // 重置计时器显示
+  document.getElementById('timer-display').textContent = formatTime(0);
 }
 
-// 手动输入时间
-function manualTimeEntry() {
-  const selectedDate = document.getElementById('date-picker').value; // 获取选中的日期
-  const enteredTime = parseInt(document.getElementById('manual-time-input').value, 10); // 获取输入的分钟数
-  if (!selectedDate) {
-    alert('请选择日期');
-    return;
-  }
-  if (!enteredTime) {
-    alert('请输入分钟数');
-    return;
-  }
-  timeType = 'manual';
-  distributeTime(enteredTime * 60); // 调用时间分配函数，分钟转化为秒
-}
-
-// 分配时间比例到理论和实践
-function distributeTime(totalTimeInSeconds) {
-  const totalMinutes = Math.floor(totalTimeInSeconds / 60); // 转换为分钟
-  if (totalMinutes > 0) {
-    addMinutes = totalMinutes;
-    // 显示滑动条分配时间
-    showTimeDistributionModal();
-  }
-}
-
-// 显示时间分配滑动条的 Modal
-function showTimeDistributionModal() {
+// 分配时间
+function distributeTime() {
+  // 显示时间分配滑动条的 Modal
   const slider = document.getElementById('theory-practice-slider');
   const theoryPercentageDisplay = document.getElementById('theory-percentage');
   const practicePercentageDisplay = document.getElementById('practice-percentage');
@@ -262,8 +181,8 @@ function showTimeDistributionModal() {
 
   // 监听滑动条的变化
   slider.addEventListener('input', function() {
-    const theoryPercentage = slider.value;
-    const practicePercentage = 100 - theoryPercentage;
+    const practicePercentage = slider.value;
+    const theoryPercentage = 100 - practicePercentage;
     theoryPercentageDisplay.textContent = theoryPercentage;
     practicePercentageDisplay.textContent = practicePercentage;
   });
@@ -271,136 +190,31 @@ function showTimeDistributionModal() {
   // 打开 Modal
   const modal = new bootstrap.Modal(document.getElementById('time-distribution-modal'));
   modal.show();
-}
 
-// 时间分配
-function handleTimeDistribution(totalMinutes, theoryPercentage) {
-  const practicePercentage = 100 - theoryPercentage;
-  
-  // 根据比例分配理论和实践的时间
-  const theoryTime = Math.floor(totalMinutes * (theoryPercentage / 100));
-  const practiceTime = Math.floor(totalMinutes * (practicePercentage / 100));
-  
-  console.log(theoryTime, practiceTime);
+  // 为时间分配的确认按钮注册点击事件
+  document.getElementById('confirm-distribution-btn').onclick = function() {
+    // 获得两个种类的时间分配
+    const slider = document.getElementById('theory-practice-slider');
+    const practicePercentage = parseInt(slider.value, 10);
+    const theoryPercentage = 100 - practicePercentage;
 
-  // 发放时间精华
-  distributeTimeEssence(theoryTime + practiceTime);
+    let practiceMinutes = Math.floor(secondsToDistribute * (practicePercentage / 6000));
+    let theoryMinutes = Math.floor(secondsToDistribute * (theoryPercentage / 6000));
 
-  // 更新数据库
-  saveTimeToDatabase(theoryTime, practiceTime);
-}
+    let researchData = {
+      date: dateToRecord,
+      theory_time: theoryMinutes,
+      practice_time: practiceMinutes,
+    };
 
-// 保存时间到数据库（可使用本地缓存，待日后同步）
-function saveTimeToDatabase(theoryTime, practiceTime) {
-  const selectedDate = document.getElementById('date-picker').value; // 获取选中的日期
+    // 调用添加 Research 记录的 command
+    const addResearchCommand = new AddResearchCommand(researchData);
+    commandManager.executeCommand(addResearchCommand);
 
-  // 保存理论和实践的时间
-  fetch('/save_time', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      date: timeType === 'manual' ? selectedDate : new Date().toJSON(),
-      theory_time: theoryTime,
-      practice_time: practiceTime,
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      console.log('时间已保存');
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
-}
-
-// 计时器停止时发放时间精华
-function distributeTimeEssence(totalTime) {
-  // 计算应发放的时间精华数量（每10分钟1个）
-  const timeEssenceEarned = Math.floor(totalTime / 10);  // totalTime 是以分钟为单位
-
-  // 更新数据库，增加时间精华数量
-  fetch('/update_items', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      item_name: 'Time Essence',
-      quantity: timeEssenceEarned
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      console.log(`已发放 ${timeEssenceEarned} 个时间精华`);
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
-}
-
-// 生成图表
-function generateTimeChart(dates, theoryTimes, practiceTimes) {
-  // 将日期字符串转换为 Date 对象，并保持与对应时间数据的关联
-  const data = dates.map((date, index) => ({
-    date: new Date(date),  // 假设日期格式可以被 Date() 解析，如 '2024-09-18'
-    theoryTime: theoryTimes[index],
-    practiceTime: practiceTimes[index]
-  }));
-
-  // 按日期排序
-  data.sort((a, b) => a.date - b.date);
-
-  // 提取排序后的日期和时间数据
-  const sortedDates = data.map(item => item.date.toISOString().split('T')[0]);  // 只保留 YYYY-MM-DD 部分
-  const sortedTheoryTimes = data.map(item => item.theoryTime);
-  const sortedPracticeTimes = data.map(item => item.practiceTime);
-
-  // 获取 Bootstrap 主题的颜色变量
-  const infoColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-info').trim();
-  const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary').trim();
-
-  // 生成图表
-  const ctx = document.getElementById('time-chart').getContext('2d');
-
-  new Chart(ctx, {
-    type: 'bar',  // 可以选择 'bar', 'line'
-    data: {
-      labels: sortedDates,  // X轴日期
-      datasets: [
-        {
-          label: 'Theory Times',
-          data: sortedTheoryTimes,
-          backgroundColor: infoColor,
-          borderColor: infoColor,
-          borderWidth: 1
-        },
-        {
-          label: 'Practice Times',
-          data: sortedPracticeTimes,
-          backgroundColor: secondaryColor,
-          borderColor: secondaryColor,
-          borderWidth: 1
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          beginAtZero: true
-        },
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
+    // 关闭 Modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('time-distribution-modal'));
+    modal.hide();
+  };
 }
 
 // 格式化时间（将秒数转换为 hh:mm:ss 格式）
@@ -411,40 +225,4 @@ function formatTime(totalSeconds) {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// 加载勋章
-document.addEventListener('DOMContentLoaded', displayBadges);
-
-// 加载时获取所有时间数据
-document.addEventListener('DOMContentLoaded', function() {
-  fetch('/get_time_data')
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      const dates = data.data.map(item => item.date);
-      const theoryTimes = data.data.map(item => item.theory_time);
-      const practiceTimes = data.data.map(item => item.practice_time);
-
-      generateTimeChart(dates, theoryTimes, practiceTimes);
-    }
-  })
-  .catch(error => console.error('Error:', error));
-
-  // 在页面加载时为按钮注册点击事件
-  document.getElementById('confirm-distribution-btn').onclick = function() {
-    const slider = document.getElementById('theory-practice-slider');
-    const theoryPercentage = parseInt(slider.value, 10);
-    
-    // 调用时间分配逻辑
-    handleTimeDistribution(addMinutes, theoryPercentage);
-
-    // 关闭 Modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('time-distribution-modal'));
-    modal.hide();
-  };
-});
-
-
 </script>
-
-</body>
-</html>

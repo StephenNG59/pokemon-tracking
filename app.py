@@ -104,7 +104,13 @@ def update_items():
     else:
         return jsonify({'status': 'error', 'message': '更新失败'})
 
-# =========================================================
+
+
+
+
+# =========================================================================
+# =========================================================================
+# =========================================================================
 # 首页路由
 @app.route('/')
 def home():
@@ -176,16 +182,30 @@ def update_task(task_id):
         return jsonify({'status': 'error'})
 
 # =========================================================================
-@app.route('/api/pokedex', methods=['GET'])
-def fetch_pokemons():
-    response = supabase.table('Pokedex').select('*').execute()
-    # print(response.data)
-    return jsonify(response.data)
-
 @app.route('/fetch_pokedex', methods=['GET'])
 def fetch_pokedex():
     response = supabase.table('Pokedex').select('*').execute()
     return jsonify(response.data)
+
+# =========================================================================
+@app.route('/fetch_research', methods=['GET'])
+def fetch_research():
+    response = supabase.table('Research').select('*').execute()
+    return jsonify(response.data)
+
+@app.route('/update_research', methods=['PUT'])
+def update_research():
+    data = request.json
+    date = data['date']
+    
+    # 更新 Supabase 中的研究记录
+    response = supabase.table('Research').update(data).eq('date', date).execute()
+
+    if response.data[0]:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
