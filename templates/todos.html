@@ -6,6 +6,26 @@
   <title>ToDos | Pokémon Tracker</title>
   <!-- 引入Bootswatch: Darkly主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .toast {
+      background-color: var(--bs-success); /*--bs-success-bg-subtle*/
+      color: var(--bs-dark);  /* 黑色文字 */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);  /* 添加阴影 */
+      border-radius: 10px;  /* 圆角 */
+      width: auto;  /* 适当的宽度 */
+      text-align: center; /* 让文本居中 */
+    }
+    .toast-header {
+      font-size: 1.6em;
+    }
+    .toast-body {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        padding-left: 120px;  /* 增加内部间距 */
+        padding-right: 120px;  /* 增加内部间距 */
+        font-size: 1.6em;  /* 增加字体大小 */
+    }
+  </style>
 </head>
 <body>
 
@@ -213,11 +233,15 @@
           <div class="mb-1 d-flex align-items-center">
             <label for="task-time" class="form-label me-2" style="width: 120px">Estimated Time</label>
             <select class="form-select w-auto my-1" id="task-time">
-              <option value="15">15 分钟</option>
-              <option value="30">30 分钟</option>
-              <option value="60">1 小时</option>
-              <option value="90">1.5 小时</option>
-              <option value="120">2 小时</option>
+              <option value="5">5 mins</option>
+              <option value="15">15 mins</option>
+              <option value="30">30 mins</option>
+              <option value="60">1 hour</option>
+              <option value="120">2 hour</option>
+              <option value="240">4 hour</option>
+              <option value="480">8 hour</option>
+              <option value="960">16 hour</option>
+              <option value="1440">24 hour</option>
             </select>
           </div>
         </form>
@@ -230,6 +254,22 @@
   </div>
 </div>
 
+
+<!-- 提示任务完成获得得到奖励的 Toast -->
+<div id="task-finish-toast-container" class="position-fixed top-40 start-50 p-3" style="z-index:1050; transform: translateX(-50%) translateY(-50%);">
+  <div id="task-finish-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Well Done!</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="toast-body">
+      <!-- 在这里显示获得的奖励 -->
+    </div>
+  </div>
+</div>
 
 <!-- =========================================================== -->
 <!-- JavaScript逻辑 -->
@@ -329,6 +369,182 @@ document.querySelectorAll('.sort-direction').forEach(button => {
 });
 
 // ========================================================
+// 在 DOM 中显示任务
+function displayTask(task) {
+  listId = task.is_finished ? 'finished-task-list' : 'unfinished-task-list';
+  const taskList = document.getElementById(listId).querySelector('ul');
+  const listItem = document.createElement('div');
+  listItem.classList.add('accordion-item');
+
+  // 任务创建时间
+  const formattedCreatedAt = formatDate(task.created_at);
+  const formattedFinishedAt = task.is_finished ? formatDate(task.finished_at) : '';
+
+  // 获取Emergency,Importance,Difficulty的符号表示
+  const emergencySymbol = (task.emergency === 1 ? '🔥' :
+    task.emergency === 2 ? '🔥🔥' :
+      task.emergency === 3 ? '🔥🔥🔥' :
+        task.emergency === 4 ? '🔥🔥🔥🔥' :
+          task.emergency);
+  const importanceSymbol = (task.importance === 1 ? '⭐' :
+    task.importance === 2 ? '⭐⭐' :
+      task.importance === 3 ? '⭐⭐⭐' :
+        task.importance === 4 ? '⭐⭐⭐⭐' :
+          task.importance);
+  const difficultySymbol = (task.difficulty === 1 ? '🔮' :
+    task.difficulty === 2 ? '🔮🔮' :
+      task.difficulty === 3 ? '🔮🔮🔮' :
+        task.difficulty === 4 ? '🔮🔮🔮🔮' :
+          task.difficulty);
+
+  // 把Notes中的换行符替换为HTML的换行标签
+  const formattedNotes = task.notes ? task.notes.replace(/\n/g, '<br>') : '';
+
+  // 任务显示
+  listItem.innerHTML = `
+    <h2 class="accordion-header" id="heading-${task.id}">
+      <button class="accordion-button collapsed task-item d-flex" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${task.id}" aria-expanded="false" aria-controls="collapse-${task.title}">
+        <span class="accordion-title flex-grow-1" style="overflow: hidden; text-overflow: ellipsis;">${task.title}</span>
+        <span class="emergency-symbol" style="width: 150px;">${emergencySymbol}</span>
+        <span class="importance-symbol" style="width: 150px;">${importanceSymbol}</span>
+        <span class="difficulty-symbol" style="width: 150px;">${difficultySymbol}</span>
+        <span class="accordion-time" style="width: 100px;">${task.estimated_time}min</span>
+      </button>
+    </h2>
+    <div id="collapse-${task.id}" class="accordion-collapse collapse" aria-labelledby="heading-${task.id}" data-bs-parent="#${listId}">
+      <div class="accordion-body">
+        <p style="white-space: pre-wrap; word-wrap: break-word;">${formattedNotes || '这个人很懒，什么都没有写'}</p>
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="created-at me-4 card-footer text-muted">Created:${formattedCreatedAt}</small>
+          ${task.is_finished ? `<small class="finished-at me-auto card-footer text-muted">Finished:${formattedFinishedAt}</small>` : ''}
+          <div class="d-flex justify-content-end align-items-center">
+            ${task.is_finished ? '' : `
+            <button class="btn btn-success float-end finish-task px-5 mx-1" data-task-id="${task.id}">✔</button>
+            <button class="btn btn-info    float-end update-task px-3 mx-1" data-task-id="${task.id}">✏</button>
+            <label class="separate-mark">|</label>
+            `}
+            <button class="btn btn-danger float-end delete-task px-3 mx-1" data-task-id="${task.id}">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 添加到任务列表
+  taskList.appendChild(listItem);
+}
+// 在 DOM 中更新任务
+function updateTaskInDOM(taskId, taskData) {
+  const listItem = document.querySelector(`#heading-${taskId}`);
+
+  if (listItem) {
+    // 更新 Title
+    const titleElement = listItem.querySelector('.accordion-title');
+    titleElement.textContent = taskData.title;
+
+    // 更新 Emergency symbol
+    const emergencySymbol = taskData.emergency === 1 ? '🔥' :
+      taskData.emergency === 2 ? '🔥🔥' :
+        taskData.emergency === 3 ? '🔥🔥🔥' :
+          taskData.emergency === 4 ? '🔥🔥🔥🔥' : taskData.emergency;
+    listItem.querySelector('.emergency-symbol').textContent = emergencySymbol;
+
+    // 更新 Importance symbol
+    const importanceSymbol = taskData.importance === 1 ? '⭐' :
+      taskData.importance === 2 ? '⭐⭐' :
+        taskData.importance === 3 ? '⭐⭐⭐' :
+          taskData.importance === 4 ? '⭐⭐⭐⭐' : taskData.importance;
+    listItem.querySelector('.importance-symbol').textContent = importanceSymbol;
+
+    // 更新 Difficulty symbol
+    const difficultySymbol = taskData.difficulty === 1 ? '🔮' :
+      taskData.difficulty === 2 ? '🔮🔮' :
+        taskData.difficulty === 3 ? '🔮🔮🔮' :
+          taskData.difficulty === 4 ? '🔮🔮🔮🔮' : taskData.difficulty;
+    listItem.querySelector('.difficulty-symbol').textContent = difficultySymbol;
+
+    // 更新 Estimated time
+    listItem.querySelector('.accordion-time').textContent = `${taskData.estimated_time}min`;
+
+    // 更新 Notes
+    const collapseDiv = document.querySelector(`#collapse-${taskId}`);
+    const notesElement = collapseDiv.querySelector('p');
+    notesElement.innerHTML = taskData.notes.replace(/\n/g, '<br>');
+  }
+}
+// 在 DOM 中把任务移动到已完成列表
+function finishTaskInDom(taskId, finishedAt) {
+  const taskItem = document.querySelector(`[data-task-id="${taskId}"]`).closest('.accordion-item');
+  if (taskItem) {
+    // 1. 删除 update-task, finish-task 按钮
+    const updateButton = taskItem.querySelector('.update-task');
+    const finishButton = taskItem.querySelector('.finish-task');
+    const separateMark = taskItem.querySelector('.separate-mark');
+
+    if (updateButton) {
+      updateButton.remove();
+    }
+    if (finishButton) {
+      finishButton.remove();
+    }
+    if (separateMark) {
+      separateMark.remove();
+    }
+
+    const collapseDiv = taskItem.querySelector('.accordion-collapse');
+    if (collapseDiv) {
+      // 如果已经有实例，先销毁旧的 Collapse 实例
+      const existingInstance = bootstrap.Collapse.getInstance(collapseDiv);
+      if (existingInstance) {
+        existingInstance.dispose();  // 销毁旧的实例
+      }
+
+      // 更新 data-bs-parent 属性，确保折叠行为正常
+      collapseDiv.setAttribute('data-bs-parent', '#finished-task-list');
+
+      // 增加 Finished time
+      const formattedFinishedAt = formatDate(finishedAt);
+      collapseDiv.querySelector('small').insertAdjacentHTML('afterend',
+        `<small class="me-auto card-footer text-muted">Finished:${formattedFinishedAt}</small>`)
+
+      // 将任务从 Unfinished 列表移动到 Finished 列表
+      taskItem.remove();
+      document.getElementById('finished-task-list').querySelector('ul').appendChild(taskItem);
+
+      // 重新初始化 Bootstrap Collapse 行为
+      let newCollapseInstance = new bootstrap.Collapse(collapseDiv, {
+        toggle: false  // 确保任务初始时为折叠状态
+      });
+      // 手动折叠新完成的任务
+      newCollapseInstance.hide();
+    }
+  }
+}
+// 重置表单内容
+function resetTaskInput() {
+  document.getElementById('task-title').value = '';
+  if (document.getElementById('task-modal')) {
+    document.getElementById('modal-task-title').value = '';
+    document.getElementById('task-notes').value = '';
+    document.getElementById('task-time').value = '15';
+    document.getElementById('emergency-low').checked = true;
+    document.getElementById('importance-low').checked = true;
+    document.getElementById('difficulty-easy').checked = true;
+  }
+}
+// 格式化时间戳 yyyy/mm/dd-hh:mm
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+  const year = String(date.getFullYear());  // 获取后两位年份
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const second = String(date.getSeconds()).padStart(2, '0');
+  return `${year}/${month}/${day}-${hour}:${minute}:${second}`;
+}
+
+// ========================================================
 // 页面加载时
 document.addEventListener('DOMContentLoaded', function () {
   const fetchTasksCommand = new FetchTasksCommand();
@@ -352,7 +568,7 @@ document.getElementById('add-task').addEventListener('click', function() {
     difficulty: 1,
     is_finished: false,
     created_at: new Date().toISOString(),
-    estimated_time: 15,
+    estimated_time: 5,
   };
   const addTaskCommand = new AddTaskCommand(task);
   commandManager.executeCommand(addTaskCommand);
@@ -498,12 +714,78 @@ document.addEventListener('click', function(event) {
     // 获得任务的 id 注意需要转换类型
     const taskId = Number(event.target.getAttribute('data-task-id'));
     const finishedAt = new Date().toISOString();
+
     const finishTaskCommand = new FinishTaskCommand(taskId, finishedAt);
     commandManager.executeCommand(finishTaskCommand);
+
+    // 获得任务的其他数据, 以计算奖励
+    const listItem = document.querySelector(`#heading-${taskId}`);
+    if (listItem) {
+      // 获取 Emergency, Importance, Difficulty
+      const taskEmergencySymbol = listItem.querySelector('.emergency-symbol').textContent;
+      const taskImportanceSymbol = listItem.querySelector('.importance-symbol').textContent;
+      const taskDifficultySymbol = listItem.querySelector('.difficulty-symbol').textContent;
+      const taskEmergency = [...taskEmergencySymbol].length
+      const taskImportance = [...taskImportanceSymbol].length
+      const taskDifficulty = [...taskDifficultySymbol].length
+
+      // 获取 Estimated Time
+      const taskEstimatedTime = Number(listItem.querySelector('.accordion-time').textContent.slice(0, -3));  // 去掉 min
+
+      // 计算金币和其他奖励
+      rewards = calculateRewards(taskEmergency, taskImportance, taskDifficulty, taskEstimatedTime);
+      // 弹出窗口显示获得的物品
+      const coin = rewards[0].delta;
+      const candy = rewards[1].delta;
+      const toastText = (candy > 0 ? `Candy + ${candy}<br>` : '') + `Coins + ${coin}`;
+      const toastElement = document.getElementById('task-finish-toast');
+      toastElement.querySelector('.toast-body').innerHTML = toastText;
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+      // 添加物品
+      console.log("rewards", rewards);
+      rewards.forEach(item => {
+        if (item.delta > 0) {
+          const addItemCommand = new AddItemCommand(item.id, item.delta);
+          commandManager.executeCommand(addItemCommand);
+        }
+      });
+    }
   }
 });
 
 
+// ========================================================
+// 计算完成任务的奖励
+function calculateRewards(emergency, importance, difficulty, minutes) {
+  const timeCoeff = Math.pow(minutes, 1/3);  // 时间[5, 1440] --对应--> [1.7, 11.3]
+  const taskWeight = Math.sqrt((importance - 0.5) * (difficulty - 0.5));  // [0.5, 3.5]
+
+  let coin = randomNumber(2, 5);  // 初始金币奖励随机在 [2, 5] 范围中
+  coin += taskWeight * timeCoeff;
+  coin = Math.floor(coin);
+  
+  let candy = 0;
+  if (difficulty >= 4) { candy += 1; }
+  if (importance >= 4) { candy += 1; }
+  let candyBonus = 0;
+  for (i = 0; i < timeCoeff; i++) {
+    if (randomNumber(0, 20) < taskWeight) { candyBonus += 1; }
+  }
+  candyBonus = Math.min(candyBonus, 2);
+  candy += candyBonus;
+
+  return [
+    { id: 1,  delta: coin },  // 金币
+    { id: 21, delta: candy }  // 神奇糖果
+  ];
+}
+function randomInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function randomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+}
 </script>
 
 </body>

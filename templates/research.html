@@ -6,6 +6,52 @@
   <title>Research | Pokémon Tracker</title>
   <!-- 引入Bootswatch: Darkly主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
+  <!-- 字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    #badge-container {
+      padding: 20px;
+      align-items: end;
+      background: var(--bs-secondary-bg-subtle);
+      border-radius: 2rem;
+      height: 150px;
+    }
+    .badge-card {
+      position: relative;
+      margin: 0 10px;
+    }
+    .badge-count {
+      font-family: "Libre Baskerville", serif;
+      font-weight: 400;
+      font-style: normal;
+      position: absolute;
+      top: 100%;
+      left: 100%;
+      transform: translateX(-50%) translateY(-50%);
+      /* background-color: rgba(0, 0, 0, 0.7); */
+      color: var(--bs-primary);
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 1.5rem;
+    }
+    .egg-progress {
+      width: -webkit-fill-available;
+      height: 2rem;
+      border-radius: 1rem;
+    }
+    #egg-hatching-progress img {
+      height: 4rem;
+    }
+
+    /* #days-range-btn-group label {
+      font-family: "Libre Baskerville", serif;
+      font-weight: 400;
+      font-style: normal;
+    } */
+  </style>
 </head>
 <body>
 
@@ -45,29 +91,28 @@
 <div class="container mt-4">
 
   <!-- 顶部区域：勋章展示和累计时长 -->
-  <div class="container mt-4">
-    <h2>Medals</h2>
-    <div id="badge-container" class="d-flex justify-content-start flex-wrap">
+  <!-- <div class="container mt-4"> -->
+    <!-- <h2>Medals</h2> -->
+    <div id="badge-container" class="d-flex justify-content-start flex-wrap my-2">
       <!-- 勋章展示区 -->
     </div>
-  </div>
-  
-  <!-- 展示今日时间 -->
-  <div class="container mt-4">
-    <h2 class="d-flex">
-      <span class="me-4">Today Time:</span>
-      <div id="today-research-time"></div>
-    </h2>
-  </div>
+  <!-- </div> -->
   
   <!-- 计时器区域 -->
   <div class="container mt-4">
-    <h2>Timer</h2>
+    <h2 class="d-flex justify-content-start">Timer
+      <!-- 展示今日时间 -->
+      <div id="today-research-time" class="text-muted ms-4"></div>
+    </h2>
     <div class="d-flex align-items-center">
       <div id="timer-display" class="display-4" style="width: 250px;">00:00:00</div>
       <button class="btn btn-primary ms-3" onclick="startTimer()">Start</button>
       <button class="btn btn-warning ms-3" onclick="pauseTimer()">Pause</button>
       <button class="btn btn-danger ms-3" onclick="stopTimer()">Stop</button>
+    </div>
+    <!-- 孵蛋区域 -->
+    <div id="egg-hatching-progress" class="mt-2">
+      <!-- 在这里展示孵蛋进度 -->
     </div>
   </div>
 
@@ -92,8 +137,30 @@
 
   <!-- 可视化图表区域 -->
   <div class="container mt-4">
-    <h2>Visualization</h2>
-    <canvas id="time-chart" class="mb-4" width="400" height="160"></canvas>
+    <h2 class="d-flex justify-content-between">Visualization
+      <span><small>Past</small>
+        <div id="days-range-btn-group" class="btn-group mx-1" role="group" aria-label="Date Range Selection">
+          <input type="radio" class="btn-check" name="date-range" id="range7" value="7" autocomplete="off">
+          <label class="btn btn-outline-primary" for="range7">7</label>
+        
+          <input type="radio" class="btn-check" name="date-range" id="range14" value="14" autocomplete="off">
+          <label class="btn btn-outline-primary" for="range14">14</label>
+        
+          <input type="radio" class="btn-check" name="date-range" id="range30" value="30" autocomplete="off" checked>
+          <label class="btn btn-outline-primary" for="range30">30</label>
+        
+          <input type="radio" class="btn-check" name="date-range" id="range60" value="60" autocomplete="off">
+          <label class="btn btn-outline-primary" for="range60">60</label>
+        
+          <input type="radio" class="btn-check" name="date-range" id="range180" value="180" autocomplete="off">
+          <label class="btn btn-outline-primary" for="range180">180</label>
+        </div>
+        <small>Days</small>
+      </span>
+    </h2>
+    <div id="chart-container" class="mb-4" style="position: relative; height: 500px; width: 100%;">
+      <canvas id="time-chart" style="height: 100%; width: 100%"></canvas>
+    </div>
   </div>
 </div>
 
@@ -126,10 +193,17 @@
 <!-- JavaScript逻辑 -->
 <!-- 引入Bootstrap的JS组件 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/command.js') }}"></script>
 <script>
 
 const commandManager = new CommandManager();
+const EveryUpdateSeconds = 60*5;  // 每5分钟更新孵蛋和宝可梦经验
+const EveryHatchCounterSeconds = 60*5;  // 每5分钟 hatch_counter+1
+const EveryExpSeconds = 10;  // 每10秒 exp+1
+const EveryCoinSeconds = 100;  // 每100秒 coin+1
+const EveryEssenceSeconds = 60;  // 每1分钟 time essence+1
+
 let timerInterval;
 let elapsedTime = 0;
 let secondsToDistribute = 0;
@@ -139,15 +213,51 @@ let dateToRecord;
 // 页面加载时
 document.addEventListener('DOMContentLoaded', function () {
   const fetchResearchCommand = new FetchResearchCommand();
+  const fetchItemsCommand = new FetchItemsCommand();
+  const fetchPokedexCommand = new FetchPokedexCommand();
+  const addHatchCounterCommand = new AddHatchCounterCommand(0);  // 偷懒使用这个来渲染蛋的进度
   commandManager.executeCommand(fetchResearchCommand);
+  commandManager.executeCommand(fetchItemsCommand);
+  // commandManager.executeCommand(fetchPokedexCommand);
+  fetchPokedexCommand.readIndexedDB().then(() => {  // 避免更新 DOM
+    fetchPokedexCommand.addToSyncQueue();
+  })
+  commandManager.executeCommand(addHatchCounterCommand);
 })
 
+// ========================================================
+// 监听可视化图表的显示范围变动
+document.querySelectorAll('input[name="date-range"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    fetchResearchCommand = new FetchResearchCommand();
+    fetchResearchCommand.readIndexedDB().then((researches) => {
+      displayHistoryResearch(researches);
+    });
+  });
+});
+
+// ========================================================
 // 计时器开始计时
 function startTimer() {
-  const startTime = Date.now() - elapsedTime * 1000 - 60000;  // 继续上次计时
+  const startTime = Date.now() - elapsedTime * 1000;  // 继续上次计时
+  let lastEggUpdate = 0;  // 用于记录上次更新孵蛋进度的时间
+
   timerInterval = setInterval(() => {
     elapsedTime = Math.floor((Date.now() - startTime) / 1000);  // 以秒为单位
     document.getElementById('timer-display').textContent = formatTime(elapsedTime);  // 更新页面上的计时器
+
+    // 每经过 5 分钟更新一次: 1. 孵蛋进度, 2. 宝可梦经验
+    if (elapsedTime - lastEggUpdate >= EveryUpdateSeconds) {
+      lastEggUpdate = elapsedTime;
+
+      // 1. 孵蛋进度
+      const addHatchCounterCommand = new AddHatchCounterCommand(Math.floor(EveryUpdateSeconds / EveryHatchCounterSeconds));
+      commandManager.executeCommand(addHatchCounterCommand);
+
+      // 2. 宝可梦经验
+      const addPokemonExpCommand = new AddPokemonExpCommand(Math.floor(EveryUpdateSeconds / EveryExpSeconds));
+      commandManager.executeCommand(addPokemonExpCommand);
+    }
   }, 1000);
 }
 
@@ -161,15 +271,215 @@ function stopTimer() {
   pauseTimer();
   secondsToDistribute = elapsedTime;
   dateToRecord = new Date().toISOString().split('T')[0];  // .toJSON()?
-  distributeTime();
-
-  // 重置计时器显示
-  elapsedTime = 0;
-  document.getElementById('timer-display').textContent = formatTime(0);
+  distributeResearchTimeAndReward(manual=false);
 }
 
-// 分配时间
-function distributeTime() {
+// ========================================================
+// 手动输入时间
+function manualTimeEntry() {
+  dateToRecord = document.getElementById('date-picker').value;  // 获取选中的日期
+  secondsToDistribute = parseInt(document.getElementById('manual-time-input').value, 10);
+
+  if (!dateToRecord) {
+    alert('请选择日期');
+    return;
+  }
+  if (!secondsToDistribute) {
+    alert('请输入分钟数');
+    return;
+  }
+  secondsToDistribute *= 60;
+
+  distributeResearchTimeAndReward(manual=true);
+}
+
+// 展示今日研究时间
+function displayTodayResearch(researches) {
+  const todayResearchItem = document.getElementById('today-research-time');
+  if (todayResearchItem) {
+    const today = new Date().toISOString().split('T')[0];
+
+    let todayTheoryTime = 0;
+    let todayPracticeTime = 0;
+    let todayTotalTime = 0;
+
+    researches.forEach(record => {
+      if (record.date === today) {
+        todayTheoryTime += record.theory_time || 0;
+        todayPracticeTime += record.practice_time || 0;
+        todayTotalTime = todayTheoryTime + todayPracticeTime;
+      }
+    });
+
+    todayResearchItem.innerHTML = `<small>${todayTotalTime} mins / today</small>`;
+  }
+}
+
+// 统计勋章数量并展示
+function displayResearchBadges(researches) {
+  // 统计每个 day-badge 的数量
+  let db1 = 0, db2 = 0, db3 = 0, db4 = 0, db5 = 0, db6 = 0;
+  researches.forEach(research => {
+    const dayMins = research.theory_time + research.practice_time;
+    if (dayMins >= 60 * 6) {
+      db6++;
+    } else if (dayMins >= 60 * 5) {
+      db5++;
+    } else if (dayMins >= 60 * 4) {
+      db4++;
+    } else if (dayMins >= 60 * 3) {
+      db3++;
+    } else if (dayMins >= 60 * 2) {
+      db2++;
+    } else if (dayMins >= 60 * 1) {
+      db1++;
+    }
+  });
+  let dayBadges = [
+    { level: 6, count: db6, src: `../static/imgs/badges/db6.png` },
+    { level: 5, count: db5, src: `../static/imgs/badges/db5.png` },
+    { level: 4, count: db4, src: `../static/imgs/badges/db4.png` },
+    { level: 3, count: db3, src: `../static/imgs/badges/db3.png` },
+    { level: 2, count: db2, src: `../static/imgs/badges/db2.png` },
+    { level: 1, count: db1, src: `../static/imgs/badges/db1.png` },
+  ];
+
+  const badgeContainer = document.getElementById('badge-container');
+  badgeContainer.innerHTML = '';  // 清空之前的内容
+  dayBadges.forEach(badge => {
+    if (badge.count > 0) {
+      const badgeCard = document.createElement('div');
+      badgeCard.className = 'badge-card';
+
+      const img = document.createElement('img');
+      img.src = badge.src;
+      img.className = 'badge-img';
+      img.alt = `Badge ${badge.src}`;
+
+      const count = document.createElement('span');
+      count.className = 'badge-count';
+      count.textContent = badge.count;
+
+      badgeCard.appendChild(img);
+      badgeCard.appendChild(count);
+      badgeContainer.appendChild(badgeCard);
+    }
+  });
+}
+
+// 在可视化图表中展示历史研究时间,
+let chartInstance = null;
+function displayHistoryResearch(researches) {
+  // 获取指定日期范围并补全数据
+  const days = document.querySelector('input[name="date-range"]:checked').value;  
+  const filledData = fillMissingDates(researches, days);
+
+  const sortedDates = filledData.map(item => item.date);
+  const sortedTheoryTimes = filledData.map(item => item.theoryTime);
+  const sortedPracticeTimes = filledData.map(item => item.practiceTime);
+
+  // 获取 Bootstrap 主题的颜色变量
+  const infoColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-info').trim();
+  const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary').trim();
+
+  // 获取 canvas 上下文
+  const ctx = document.getElementById('time-chart').getContext('2d');
+  
+  // // 保存当前的滚动位置
+  // const scrollPosition = window.scrollY;
+  
+  // 如果已有图表实例, 则销毁它
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  // 生成新的图表
+  chartInstance = new Chart(ctx, {
+    type: 'bar',  // 可以选择 'bar', 'line'
+    data: {
+      labels: sortedDates,  // X轴日期
+      datasets: [
+        {
+          label: 'Theory Times',
+          data: sortedTheoryTimes,
+          backgroundColor: infoColor,
+          borderColor: infoColor,
+          borderWidth: 1
+        },
+        {
+          label: 'Practice Times',
+          data: sortedPracticeTimes,
+          backgroundColor: secondaryColor,
+          borderColor: secondaryColor,
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,  // 不保持宽高比
+      scales: {
+        x: {
+          // beginAtZero: true
+          stacked: true
+        },
+        y: {
+          beginAtZero: true,
+          stacked: true
+        }
+      }
+    }
+  });
+
+  // // 恢复滚动位置
+  // window.scrollTo(0, scrollPosition);
+}
+
+// 获取日期范围
+function getDateRange(days) {
+  const dateRange = [];
+  const today = new Date();
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);  // 向前推 `i` 天
+    dateRange.push(date.toISOString().split('T')[0]);  // 保留 YYYY-MM-DD 格式
+  }
+  
+  return dateRange.reverse();  // 将日期从过去到今天排列
+}
+
+// 填补缺失的日期并置0
+function fillMissingDates(researches, days) {
+  const filledData = [];
+
+  const dateRange = getDateRange(days);  // 生成连续的日期范围
+
+  dateRange.forEach(date => {
+    const found = researches.find(record => record.date === date);
+    
+    if (found) {
+      filledData.push({
+        date: date,
+        theoryTime: found.theory_time,
+        practiceTime: found.practice_time
+      });
+    } else {
+      // 如果没有记录，填充0
+      filledData.push({
+        date: date,
+        theoryTime: 0,
+        practiceTime: 0
+      });
+    }
+  });
+
+  return filledData;
+}
+
+// ========================================================
+// 分配时间和奖励
+function distributeResearchTimeAndReward(manual) {
   // 显示时间分配滑动条的 Modal
   const slider = document.getElementById('theory-practice-slider');
   const theoryPercentageDisplay = document.getElementById('theory-percentage');
@@ -193,6 +503,8 @@ function distributeTime() {
 
   // 为时间分配的确认按钮注册点击事件
   document.getElementById('confirm-distribution-btn').onclick = function() {
+    // 1. 更新 Research 记录
+    // ====================================================
     // 获得两个种类的时间分配
     const slider = document.getElementById('theory-practice-slider');
     const practicePercentage = parseInt(slider.value, 10);
@@ -211,9 +523,53 @@ function distributeTime() {
     const addResearchCommand = new AddResearchCommand(researchData);
     commandManager.executeCommand(addResearchCommand);
 
-    // 关闭 Modal
+
+    // 2. 更新道具记录
+    // ====================================================
+    const addItemsList = [
+      { id: 1,  delta: Math.floor(secondsToDistribute / EveryCoinSeconds) },     // 金币
+      { id: 11, delta: Math.floor(secondsToDistribute / EveryEssenceSeconds)  }, // 时间精华
+      // { id: 21, delta: Math.floor(secondsToDistribute / 100) },   // 神奇糖果
+    ];
+    // 弹出窗口显示获得的物品
+    const coin = addItemsList[0].delta;
+    const essence = addItemsList[1].delta;
+    if (coin > 0 || essence > 0) {
+      const toastText = (essence > 0 ? `Time Essence + ${essence}<br>` : '') + (coin > 0 ? `Coins + ${coin}<br>` : '');
+      const toastElement = document.getElementById('task-finish-toast');
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+      console.log("addItemsList", addItemsList);
+
+      // 调用增加道具的 command
+      addItemsList.forEach(item => {
+        if (item.delta > 0) {
+          const addItemCommand = new AddItemCommand(item.id, item.delta);
+          commandManager.executeCommand(addItemCommand);
+        }
+      });
+    }
+
+    // 3. 如果是手动增加计时, 更新宝可梦经验值(计时器计时的部分, 在过程中自动添加了)
+    // ====================================================
+    if (manual) {
+      const addPokemonExpCommand = new AddPokemonExpCommand(Math.floor(secondsToDistribute / EveryExpSeconds * 0.8));  // 手动记录获得的经验值打8折
+      commandManager.executeCommand(addPokemonExpCommand);
+    }
+    
+    // 4. 关闭 Modal 并清空输入
+    // ====================================================
     const modal = bootstrap.Modal.getInstance(document.getElementById('time-distribution-modal'));
     modal.hide();
+
+    if (manual) {
+      // 重置手动输入框
+      document.getElementById('manual-time-input').value = 0;
+    } else {
+      // 重置计时器显示
+      elapsedTime = 0;
+      document.getElementById('timer-display').textContent = formatTime(0);
+    }
   };
 }
 
@@ -224,5 +580,8 @@ function formatTime(totalSeconds) {
   const seconds = totalSeconds % 60;
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
+
+// 为了避免Error的一个声明, 没有实际用处
+function displaySidebarCard(pokemon) {}
 
 </script>

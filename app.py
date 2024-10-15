@@ -8,107 +8,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")  # $env:SUPABASE_URL="..."
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # $env:SUPABASE_KEY="..."
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-
 app = Flask(__name__, static_folder='static')
 
-
-# =========================================================
-# 从数据库中完成任务
-@app.route('/finish_task/<int:task_id>', methods=['PUT'])
-def finish_task(task_id):
-    data = request.json  # 从请求中获取要更新的数据
-    is_finished = data.get('is_finished')
-    finished_at = data.get('finished_at')
-
-    # 更新 Supabase 中的任务
-    response = supabase.table('Tasks').update({
-        'is_finished': is_finished,
-        'finished_at': finished_at
-    }).eq('id', task_id).execute()
-
-    if response.data[0]['id'] == task_id:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'error'})
-
-# 从数据库读取所有任务
-@app.route('/tasks', methods=['GET'])
-def get_all_tasks():
-    response = supabase.table('Tasks').select('*').execute()
-    tasks = response.data
-
-    # 将任务数据转换为字典列表
-    task_list = []
-    for task in tasks:
-        task_list.append({
-            'id': task['id'],
-            'title': task['title'],
-            'notes': task['notes'],
-            'is_finished': task['is_finished'],
-            'created_at': task['created_at'],
-            'finished_at': task['finished_at'],
-            'emergency': task['emergency'],
-            'importance': task['importance'],
-            'difficulty': task['difficulty'],
-            'estimated_time': task['estimated_time']
-        })
-    
-    return jsonify(task_list)
-
-# =========================================================
-# 保存每日时间和发放勋章
-@app.route('/save_time', methods=['POST'])
-def save_time():
-    data = request.json
-    date = data.get('date', datetime.today())
-    theory_time = data.get('theory_time', 0)
-    practice_time = data.get('practice_time', 0)
-
-    # 保存时间逻辑（存储理论和实践的时长）
-    response = supabase.rpc(
-        'increase_daily_effort', {
-            'day': date,
-            'x_theory': theory_time,
-            'x_practice': practice_time, 
-    }).execute()
-
-    if response:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'error', 'message': '保存失败'})
-    
-# 获取历史每日时间
-@app.route('/get_time_data', methods=['GET'])
-def get_time_data():
-    # 从数据库中获取最近一周或一月的时间数据
-    response = supabase.table('DailyEffort').select('date', 'theory_time', 'practice_time').execute()
-
-    if response.data[0]:
-        return jsonify({'status': 'success', 'data': response.data})
-    else:
-        return jsonify({'status': 'error', 'message': '数据获取失败'})
-
-# =========================================================
-# 更新道具
-@app.route('/update_items', methods=['POST'])
-def update_items():
-    data = request.json
-    item_name = data.get('item_name')
-    quantity = data.get('quantity')
-
-    # 使用 SQL 原生查询更新 quantity 字段
-    response = supabase.rpc('increase_item', {'name': item_name, 'x': quantity}).execute()
-
-    if response:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'error', 'message': '更新失败'})
-
-
-
-
-
-# =========================================================================
 # =========================================================================
 # =========================================================================
 # 首页路由
@@ -181,6 +82,23 @@ def update_task(task_id):
     else:
         return jsonify({'status': 'error'})
 
+@app.route('/finish_task/<int:task_id>', methods=['PUT'])
+def finish_task(task_id):
+    data = request.json  # 从请求中获取要更新的数据
+    is_finished = data.get('is_finished')
+    finished_at = data.get('finished_at')
+
+    # 更新 Supabase 中的任务
+    response = supabase.table('Tasks').update({
+        'is_finished': is_finished,
+        'finished_at': finished_at
+    }).eq('id', task_id).execute()
+
+    if response.data[0]['id'] == task_id:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error'})
+
 # =========================================================================
 @app.route('/fetch_pokedex', methods=['GET'])
 def fetch_pokedex():
@@ -196,12 +114,73 @@ def fetch_research():
 @app.route('/update_research', methods=['PUT'])
 def update_research():
     data = request.json
-    date = data['date']
+    date = data.get('date', datetime.today())
+    theory_time = data.get('theory_time', 0)
+    practice_time = data.get('practice_time', 0)
     
     # 更新 Supabase 中的研究记录
-    response = supabase.table('Research').update(data).eq('date', date).execute()
+    # response = supabase.table('Research').update(data).eq('date', date).execute()
+    response = supabase.rpc(
+        'upsert_research', {
+            'day': date,
+            'x_theory': theory_time,
+            'x_practice': practice_time, 
+    }).execute()
 
-    if response.data[0]:
+    if response.data:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '更新数据库失败'})
+
+# =========================================================================
+@app.route('/fetch_items', methods=['GET'])
+def fetch_items():
+    response = supabase.table('Items').select('*').execute()
+    return jsonify(response.data)
+
+@app.route('/add_item', methods=['PUT'])
+def add_item():
+    data = request.json
+    item_id = data.get('id')
+    item_delta = data.get('delta')
+
+    # 添加 Supabase 中的道具记录
+    response = supabase.rpc(
+        'increase_item', {
+            'x': item_delta,
+            'item_id': item_id,
+        }
+    ).execute()
+
+    if response.data:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '增减数据库的道具失败'})
+
+# =========================================================================
+@app.route('/add_pokemon_exp', methods=['PUT'])
+def add_pokemon_exp():
+    data = request.json
+    exp_delta = data.get('delta')
+
+    # 添加 Supabase 中的宝可梦经验
+    response = supabase.rpc(
+        'increase_pokemon_exp', {
+            'x': exp_delta
+        }
+    ).execute()
+
+    if response.data:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '更改数据库的宝可梦失败'})
+
+@app.route('/update_pokemon', methods=['PUT'])
+def update_pokemon():
+    data = request.json
+    response = supabase.table('Pokedex').update(data).eq('id', data['id']).eq('url_id', data['url_id']).execute()
+
+    if response.data[0]['url_id'] == data['url_id']:
         return jsonify({'status': 'success'})
     else:
         return jsonify({'status': 'error'})

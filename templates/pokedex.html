@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pokédex | Pokémon Tracker</title>
+  <!-- 字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
   <!-- 引入Bootswatch: Minty主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -60,6 +66,7 @@
 
 
     .pokedex-card {
+      font-family: 'Poppins', sans-serif;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -69,7 +76,6 @@
       border-radius: 10px;
       color: rgb(255, 255, 255);
     }
-    
     .pokedex-card-info {
       display: flex;
       flex-direction: column;
@@ -78,7 +84,6 @@
       padding-left: 15px;
       flex-grow: 1;  /* 让左侧信息区域占据剩余空间 */
     }
-
     .pokedex-card-thumbnail {
       background-color: rgba(255, 255, 255, 0.5);
       padding: 0px;
@@ -89,11 +94,9 @@
       width: 95px;
       height: 80px;
     }
-
     .pokedex-card:hover {
       background-color: var(--bs-primary-bg-subtle);
     }
-
     .pokedex-card img {
       /* max-width: 60px; */
       height: 100%;  /* 让图片占满容器 */
@@ -112,7 +115,6 @@
       overflow-y: scroll;
       background-color: var(--bs-light-bg-subtle);
     }
-
     .pokedex-upper-row {
       display: flex;
       justify-content: space-between;
@@ -120,27 +122,82 @@
     }
 
     .pokedex-detail {
+      font-family: 'Poppins', sans-serif;  /* 设置整体字体 */
       height: 500px;
-      width: 20vw;
-      display: flex;
-      flex-direction: column;
-      justify-content: start;
-      align-items: baseline;
+      width: 450px;
+      /* display: flex; */
+      /* flex-direction: column; */
+      /* justify-content: start; */
+      /* align-items: baseline; */
       padding: 10px;
       margin: 10px;
       border-radius: 10px;
       background-color: var(--bs-info-bg-subtle);
     }
+    p, .badge {
+      font-family: 'Poppins', sans-serif;
+    }
+    .pokedex-detail h2 {
+      font-family: "Pacifico", cursive; /* Dancing Script */
+      /* font-optical-sizing: auto; */
+      font-weight: 400;
+      font-style: normal;
+    }
+    .pokedex-detail h4 {
+      font-weight: 500;
+    }
+    .progress {
+      flex-grow: 1;
+      height: 2rem;
+      border-radius: 0.9rem;
+    }
+    .progress-bar {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+    }
+    #play-audio-btn {
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .badge {
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
 
     .pokedex-image {
       height: 500px;
       max-width: 100%;
-      flex-grow: 1;
+      flex-grow: 1; /* 自动填充整个宽度 */
+      display: flex;
+      flex-direction: row;
+      justify-content: end;
       padding: 10px;
       margin: 10px;
       border-radius: 10px;
       background-color: var(--bs-secondary-bg-subtle);
-      /* height: auto; */
+    }
+    .pokedex-image-official-artwork {
+      width: fit-content;
+      height: 475px;
+      object-fit: contain;
+    }
+    .shiny-toggle-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      border: none;
+      border-radius: 50%;
+      padding: 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .shiny-toggle-btn svg {
+      width: 1.5em;
+      height: 1.5em;
+      stroke: #222222;
+      fill: none;
     }
 
     .pokedex-media {
@@ -150,6 +207,24 @@
       margin: 10px;
       border-radius: 10px;
       background-color: var(--bs-primary-bg-subtle);
+    }
+    #pokedex-media-container {
+      display: flex;
+      gap: 10px;
+    }
+    .media-card {
+      width: 200px;
+      height: 200px;
+      border: 2px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .media-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
   </style>
@@ -204,19 +279,25 @@
     <div class="pokedex-content">
       <div class="pokedex-upper-row">
         <!-- 上面左边详细资料 -->
-        <div class="pokedex-detail">
+        <div class="pokedex-detail card p-3">
           <span>这里是详细资料</span>
         </div>
   
         <!-- 上面右边图片资料 -->
-        <div class="pokedex-image">
+        <div class="pokedex-image card p-3">
           <span>这里是大图片展示区域</span>
+          <!-- <img src="https://i.pinimg.com/originals/3c/a0/8b/3ca08beec594897f38f250e53d42aeb6.jpg"> -->
+          <iframe src="https://assets.pinterest.com/ext/embed.html?id=57069120272813824"></iframe>
         </div>
       </div>
 
       <!-- 下面更多资料 -->
-      <div class="pokedex-media">
-        <span>这里是更多媒体展示区域</span>
+      <div class="pokedex-media card p-3">
+        <div id="pokedex-media-container">
+          <!-- 在这里展示 Pinterest 图片 -->
+        </div>
+        <button id="open-pinterest-btn" aria-label="Open Pinterest Button" class="btn btn-primary my-3">Open Pinterest</button>
+        </iframe>
       </div>
     </div>
   </div>
@@ -226,18 +307,358 @@
 <!-- Bootswatch Minty JS & Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- 引入 Color Thief 用于提取图片颜色 -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
 <script src="{{ url_for('static', filename='js/command.js') }}"></script>
-<script>
 
+<script>
 const commandManager = new CommandManager();
+const colorThief = new ColorThief();
+const unlockOfficialArtworkLevel = 10;
+const unlockGifLevel = 20;
+const unlockPinterestLevel = 30;
+const unlockShinyArtworkLevel = 40;
+let isShiny = false;
 
 // ========================================================
 // 页面加载时
 document.addEventListener('DOMContentLoaded', function () {
   const fetchPokedexCommand = new FetchPokedexCommand();
   commandManager.executeCommand(fetchPokedexCommand);
-})
-</script>
+});
 
+// 在侧边栏中展示当前宝可梦缩略卡片
+function displaySidebarCard(pokemon) {
+    const pokedexSidebar = document.getElementById('pokedex-list');
+  if (!pokedexSidebar) { return; }
+
+  const sidebarCard = document.createElement('div');
+  // sidebarCard.classList.add('pokedex-card');
+
+  const id = pokemon.id;
+  const formattedId = String(id).padStart(3, '0');
+  const url_id = pokemon.url_id;
+  const imgSrc = `static/imgs/pokedex/thumbnail/${url_id}.png`;
+  const isUnlocked = pokemon.is_unlocked;
+  const nameCN = pokemon.name_cn;
+  const type1 = pokemon.type1;
+  const type2 = pokemon.type2;
+
+  let typeContext;
+  if (isUnlocked) {
+    typeContext = `${type1}`;
+    if (type2) {
+      typeContext = typeContext + ` / ${type2}`;
+    }
+  } else {
+    typeContext = '----';
+    if (type2) {
+      typeContext = typeContext + ' / ----';
+    }
+  }
+
+  // 缩略卡片内容
+  sidebarCard.innerHTML = `
+        <div class="pokedex-card" id="pokedex-card-${url_id}">
+            <div class="pokedex-card-info">
+                <strong>No.${formattedId}  ${isUnlocked ? nameCN : '------'}</strong>
+                <span>${typeContext}</span>
+            </div>
+            <div class="pokedex-card-thumbnail">
+                <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${pokemon.name_cn}">
+            </div>
+        </div>
+    `;
+
+  pokedexSidebar.appendChild(sidebarCard);
+
+  // 图片加载后提取颜色
+  const card = document.getElementById(`pokedex-card-${url_id}`);
+  const thumbnailElement = document.getElementById(`pokedex-thumbnail-${url_id}`);
+
+  // 根据解锁状态设置缩略卡片颜色为灰色或彩色
+  if (isUnlocked === false) {
+    // 设置卡片背景为灰色
+    card.style.backgroundColor = "var(--bs-gray)"; // "rgba(66,66,66,0.2)", "#424242"
+    // 设置宝可梦缩略图为黑色剪影. 如果加上 invert(1) 或者直接 brightness(1) 就是白色剪影
+    thumbnailElement.style.filter = 'brightness(0) invert(0.4)';
+  } else {
+    thumbnailElement.addEventListener('load', () => {
+      if (thumbnailElement.complete && thumbnailElement.naturalHeight !== 0) {
+        // 提取图片主题色
+        let color = colorThief.getColor(thumbnailElement);
+        color = increaseSaturationLightness(color, 12, 6);
+        card.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+      }
+    });
+  }
+
+  // 如果已解锁, 点击可以查看详情
+  if (isUnlocked) {
+    sidebarCard.addEventListener('click', () => {
+      displayPokemon(id, url_id);
+    });
+  }
+}
+
+// 展示宝可梦详细信息
+function displayPokemon(id, url_id) {
+  // 打开 IndexedDB，获取宝可梦的详细信息
+  openIndexedDB().then(db => {
+    const transaction = db.transaction('Pokedex', 'readonly');
+    const store = transaction.objectStore('Pokedex');
+    
+    // 通过 url_id & id 查找宝可梦
+    const request = store.get([id, url_id]);
+    
+    request.onsuccess = (event) => {
+      const pokemon = event.target.result;
+      if (pokemon) {
+        isShiny = false;
+
+        const id = pokemon.id;
+        const formattedId = String(id).padStart(3, '0');
+        const name_cn = pokemon.name_cn;
+        const name_en = pokemon.name_en;
+        const level = pokemon.level;
+        const exp = pokemon.exp;
+        const type1 = pokemon.type1;
+        const type2 = pokemon.type2;
+        const height = pokemon.height / 10.0;
+        const weight = pokemon.weight / 10.0;
+        const flavor_text = pokemon.flavor_text;
+        const unlocked_at = pokemon.unlocked_at;
+
+        const hp = pokemon.hp;
+        const atk = pokemon.attack;
+        const def = pokemon.defense;
+        const spatk = pokemon.special_attack;
+        const spdef = pokemon.special_defense;
+        const spd = pokemon.speed;
+
+        const current_hp = calculatePokemonStat(hp, level, true);
+        const current_atk = calculatePokemonStat(atk, level);
+        const current_def = calculatePokemonStat(def, level);
+        const current_spatk = calculatePokemonStat(spatk, level);
+        const current_spdef = calculatePokemonStat(spdef, level);
+        const current_spd = calculatePokemonStat(spd, level);
+
+        // 关于当前等级和经验值的计算
+        const next_level_exp = Math.pow(level + 1, 3);
+        const prev_level_exp = (level === 1) ? 0 : Math.pow(level, 3);
+        const this_level_current_exp = Math.max(exp - prev_level_exp, 0);
+        const this_level_max_exp = next_level_exp - prev_level_exp;
+        const progress = (this_level_current_exp / this_level_max_exp) * 100;
+
+        // 关于解锁日期距今天数的计算
+        const unlockedDate = new Date(unlocked_at);
+        const today = new Date();
+        const timeDifference = today - unlockedDate;
+        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+
+        // 更新详细信息卡片
+        // ============================================================
+        const detailElement = document.querySelector(`.pokedex-detail`);
+        detailElement.innerHTML = `
+          <!-- 名字 (中英文) -->
+          <h2 class="mb-2">No.${formattedId}&nbsp;&nbsp;${name_en}</h2>
+          
+          <div class="d-flex align-items-center my-2" style="margin:3px;">
+            <!-- 等级和经验值进度条 -->
+            <h4 class="my-2">Lv.${level}</h4>
+            <div class="progress ms-3 w-auto">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: ${progress}%;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}">
+                ${this_level_current_exp} / ${this_level_max_exp}
+              </div>
+            </div>
+
+            <!-- 声音播放 -->
+            <div class="audio-player my-2 ms-4">
+              <button id="play-audio-btn" class="btn btn-primary">🐱📣</button>
+
+              <!-- 隐藏的音频元素 -->
+              <audio id="pokemon-audio" src="https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${url_id}.ogg"></audio>
+            </div>
+          </div>
+
+          <div class="my-2 d-flex justify-content-between">
+            <!-- 类型展示 -->
+            <div>
+              <span class="badge bg-primary">${type1}</span>
+              ${type2 ? `<span class="badge bg-secondary ms-1">${type2}</span>` : ''}
+            </div>
+            <!-- 高度和重量 -->
+            <div class="d-flex">
+              <div class="me-3"><span class="me-1">📏</span>${height} m</div>
+              <div class="me-3"><span class="me-1">⚖️</span>${weight} kg</div>
+            </div>
+          </div>
+
+          <!-- 描述 -->
+          <p class="my-3">${flavor_text}</p>
+
+          <!-- 属性展示 -->
+          <div class="row my-3">
+            <div class="col-6">❤️ HP: ${current_hp}</div>
+            <div class="col-6">🌀 Speed: ${current_spd}</div>
+            <div class="col-6">⚔️ Attack: ${current_atk}</div>
+            <div class="col-6">🛡️ Defense: ${current_def}</div>
+            <div class="col-6">🔮 Sp. Attack: ${current_spatk}</div>
+            <div class="col-6">🔰 Sp. Defense: ${current_spdef}</div>
+          </div>
+
+          <!-- 解锁日期 -->
+          <div class="mt-3">
+            <small>Unlocked at: </small>
+            <strong>${daysDifference}</strong>
+            <small> days ago (${unlocked_at})</small>
+          </div>
+        `;
+        
+
+        // 更新图片展示卡片
+        // ============================================================
+        // 图片资源地址
+        const officialArtworkUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${url_id}.png`
+        const officialArtworkShinyUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${url_id}.png`
+        const imageCardElement = document.querySelector(`.pokedex-image`);
+        imageCardElement.innerHTML = `
+          <img id="pokemon-official-artwork" class="pokedex-image-official-artwork" src="${officialArtworkUrl}" alt="${name_cn}" class="img-fluid">
+          <button id="toggle-shiny-btn" aria-label="Shiny toggle Button" class="btn btn-secondary shiny-toggle-btn" >
+            <svg stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+              <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M259.92 262.91L216.4 149.77a9 9 0 00-16.8 0l-43.52 113.14a9 9 0 01-5.17 5.17L37.77 311.6a9 9 0 000 16.8l113.14 43.52a9 9 0 015.17 5.17l43.52 113.14a9 9 0 0016.8 0l43.52-113.14a9 9 0 015.17-5.17l113.14-43.52a9 9 0 000-16.8l-113.14-43.52a9 9 0 01-5.17-5.17zM108 68L88 16 68 68 16 88l52 20 20 52 20-52 52-20-52-20zm318.67 49.33L400 48l-26.67 69.33L304 144l69.33 26.67L400 240l26.67-69.33L496 144l-69.33-26.67z"></path>
+            </svg>
+          </button>
+        `;
+
+        // 切换闪光图片
+        const pokemonOfficialArtwork = document.getElementById('pokemon-official-artwork');
+        const toggleShinyBtn = document.getElementById('toggle-shiny-btn');
+        toggleShinyBtn.onclick = function() {
+          if (isShiny) {
+            pokemonOfficialArtwork.src = officialArtworkUrl;
+            toggleShinyBtn.querySelector('path').style.fill = 'none'; // useless
+            // toggleShinyBtn.classList.remove('checked'); // useless
+            isShiny = false;
+          } else {
+            pokemonOfficialArtwork.src = officialArtworkShinyUrl;
+            toggleShinyBtn.querySelector('path').style.fill = '#222222'; // useless
+            // toggleShinyBtn.classList.add('checked'); // useless
+            isShiny = true;
+          }
+        };
+
+        // 声音播放
+        const audioElement = document.getElementById('pokemon-audio');
+        const playAudioButton = document.getElementById('play-audio-btn');
+        playAudioButton.onclick = function() {
+          audioElement.currentTime = 0;  // 重置音频播放进度
+          audioElement.volume = 0.2;
+          audioElement.play();  // 播放音频
+        };
+
+        // 更新媒体展示
+        // ===================================================================
+        const openPinterestBtn = document.getElementById('open-pinterest-btn');
+        const mediaContainer = document.getElementById('pokedex-media-container');
+        openPinterestBtn.onclick = function() {
+          const searchUrl = `https://www.pinterest.com/search/pins/?q=pokemon%20${name_en}%20wallpapers`;
+          const height = window.screen.availHeight;
+          const width = 660;
+          window.open(searchUrl, '_blank', `width=${width},height=${height},scrollbars=yes,resizable=yes`);
+        };
+
+        // 一些功能的限制或删除
+        // ====================================================================
+        // 等级限制
+        if (level < unlockOfficialArtworkLevel) {
+          pokemonOfficialArtwork.style.filter = 'brightness(0) invert(0.9)';
+          pokemonOfficialArtwork.setAttribute('title', `unlocked at Lv.${unlockOfficialArtworkLevel}`);
+        }
+        if (level < unlockShinyArtworkLevel) {
+          toggleShinyBtn.style.filter = 'brightness(0) invert(0.9)';
+          toggleShinyBtn.classList.add('disabled');
+          toggleShinyBtn.setAttribute('title', `unlocked at Lv.${unlockShinyArtworkLevel}`);
+        }
+        
+        // 如果不存在闪光图片, 删除按钮
+        fetch(officialArtworkShinyUrl, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            // 如果闪光图片存在
+          } else {
+            // 如果闪光图片不存在
+            toggleShinyBtn.remove();
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching shiny image:', error);
+        });
+      }
+    };
+
+    request.onerror = (event) => {
+      console.error('Error fetching Pokemon details from IndexedDB:', event.target.error);
+    };
+  });
+}
+
+// 通过种族值和等级计算当前数值
+function calculatePokemonStat(base, level, isHP=false) {
+  let current = Math.floor((2.2 * base + level / 2) / 100) + 5;
+  if (isHP) {
+    current += level + 5;
+  }
+  return current;
+}
+
+// 将RGB转换为HSL，增加饱和度和亮度
+function increaseSaturationLightness(rgb, saturationIncrease = 10, lightnessIncrease = 10) {
+  const [r, g, b] = rgb.map(x => x / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+
+    h /= 6;
+  }
+
+  // 增加饱和度
+  s = Math.max(0, Math.min(1, s + saturationIncrease / 100));
+
+  // 增加亮度
+  l = Math.max(0, Math.min(1, l + lightnessIncrease / 100));
+
+  // 转回到RGB
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+
+  let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  let p = 2 * l - q;
+
+  let rNew = hue2rgb(p, q, h + 1 / 3);
+  let gNew = hue2rgb(p, q, h);
+  let bNew = hue2rgb(p, q, h - 1 / 3);
+
+  return [Math.round(rNew * 255), Math.round(gNew * 255), Math.round(bNew * 255)];
+}
+
+
+</script>
 </body>
