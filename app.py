@@ -175,6 +175,27 @@ def add_pokemon_exp():
     else:
         return jsonify({'status': 'error', 'message': '更改数据库的宝可梦失败'})
 
+@app.route('/add_pokemon_img', methods=['PUT'])
+def add_pokemon_img():
+    data = request.json
+    id = data.get('id')
+    url_id = data.get('url_id')
+    img_url = data.get('img_url')
+    print(f"{id}, {url_id}, {img_url}")
+    response = supabase.rpc(
+        'add_img_url', {
+            'pokemon_id': id,
+            'pokemon_url_id': url_id,
+            'new_img_url': img_url
+        }
+    ).execute()
+
+    if response.data:
+        print(response.data)
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '添加数据库的宝可梦图片失败'})
+
 @app.route('/update_pokemon', methods=['PUT'])
 def update_pokemon():
     data = request.json

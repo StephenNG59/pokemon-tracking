@@ -131,9 +131,9 @@ class TaskQueueManager {
                     const store = transaction.objectStore('Pokedex');
     
                     pokedex.forEach(pokemon => {
-                        store.put({ ...pokemon, id: pokemon.id });
+                        store.put({ ...pokemon, id: pokemon.id, url_id: pokemon.url_id });
     
-                        const listItem = document.querySelector(`#pokedex-card-${pokemon.id}`);
+                        const listItem = document.querySelector(`#pokedex-card-${pokemon.url_id}`);
                         if (!listItem) {
                             // 如果 sidebar 中没有此宝可梦则展示
                             displaySidebarCard(pokemon);
@@ -262,6 +262,26 @@ class TaskQueueManager {
         });
     }
 
+    addPokemonImg(task) {
+        return new Promise((resolve, reject) => {
+            fetch('/add_pokemon_img', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task.data),
+            })
+            .then(response => response.json())
+            .then(() => this.processQueue())
+            .catch((error) => {
+                console.error('Error adding pokemon img:', error);
+                this.queue.unshift(task);
+                setTimeout(() => this.processQueue(), 10000);
+            }).catch(error => {
+                reject('Error: ' + error);
+            });
+            resolve();
+        });
+    }
+
     updatePokemon(task) {
         return new Promise((resolve, reject) => {
             fetch(`/update_pokemon`, {
@@ -323,6 +343,9 @@ class TaskQueueManager {
                 break;
             case 'add_pokemon_exp':
                 this.addPokemonExp(task).then(() => this.processQueue());
+                break;
+            case 'add_pokemon_img':
+                this.addPokemonImg(task).then(() => this.processQueue());
                 break;
             case 'update_pokemon':
                 this.updatePokemon(task).then(() => this.processQueue());
@@ -842,7 +865,7 @@ class AddResearchCommand extends Command {
         const today = new Date().toISOString().split('T')[0];
         if (this.researchData.date === today) {
             let todayTime = this.researchData.theory_time + this.researchData.practice_time;
-            document.getElementById('today-research-time').textContent = `${todayTime} mins`;
+            document.getElementById('today-research-time').textContent = `${todayTime} mins / today`;
         }
 
         // 更新图表的显示
@@ -1027,7 +1050,7 @@ class AddPokemonExpCommand extends Command {
                             const putRequest = store.put(pokemon);
 
                             putRequest.onsuccess = () => {
-                                console.log('Pokemon exp updated successfully');
+                                console.log(`Pokemon exp locally updated:${pokemon.name_cn}-level${pokemon.level}`);
                             };
                 
                             putRequest.onerror = (event) => {
@@ -1071,6 +1094,83 @@ class AddPokemonExpCommand extends Command {
     }
 }
 
+class AddPokemonImgCommand extends Command {
+    constructor(id, url_id, img_url) {
+        super();
+        this.id = id;
+        this.url_id = url_id;
+        this.img_url = img_url;
+    }
+
+    updateIndexedDB() {
+        return new Promise((resolve, reject) => {
+            openIndexedDB().then(db => {
+                const transaction = db.transaction('Pokedex', 'readwrite');
+                const store = transaction.objectStore('Pokedex');
+                const getRequest = store.get([this.id, this.url_id]);
+
+                getRequest.onsuccess = (event) => {
+                    const pokemon = event.target.result;
+                    if (!pokemon.img_urls) {
+                        pokemon.img_urls = [];
+                    }
+                    pokemon.img_urls.push(this.img_url);
+                    this.img_urls = pokemon.img_urls;
+
+                    const putRequest = store.put(pokemon);
+                    putRequest.onsuccess = () => {
+                        console.log(`[Succeed] IndexedDB-put:${pokemon.name_cn}'s url+=${this.img_url}`);
+                        resolve(pokemon);
+                    };
+                    putRequest.onerror = (event) => {
+                        console.error(`[Error] IndexedDB-put:${pokemon.name_cn}`, event.target.error);
+                        reject('Error adding img_url to pokemon', event.target.error);
+                    };
+                };
+
+                getRequest.onerror = (event) => {
+                    const msg = `[Error] IndexedDB-get:id=${this.id},url_id=${this.url_id}` + event.target.error;
+                    console.error(msg);
+                    reject(msg);
+                }
+            });
+        });
+    }
+
+    updateDOMWithPokemon(pokemon) {
+        displayMediaContainer(pokemon);
+        const mediaContainer = document.getElementById('pokedex-media-container');
+        mediaContainer.innerHTML = '';
+        if (pokemon.img_urls) {
+            pokemon.img_urls.forEach(url => {
+              const imgCard = document.createElement('img');
+              imgCard.src = url;
+              mediaContainer.appendChild(imgCard);
+            });
+        }
+    }
+
+    addToSyncQueue() {
+        taskQueueManager.addTaskToQueue({
+            action: 'add_pokemon_img',
+            data: { 
+                id:this.id, 
+                url_id: this.url_id, 
+                img_url: this.img_url 
+            }
+        });
+    }
+
+    execute() {
+        this.updateIndexedDB().then((pokemon) => {
+            this.updateDOMWithPokemon(pokemon);
+            this.addToSyncQueue();
+        }).catch((error) => {
+            console.error('Failed to execute AddPokemonImgCommand:', error);
+        });
+    }
+}
+
 class AddHatchCounterCommand extends Command {
     constructor(counter) {
         super();
@@ -1078,29 +1178,75 @@ class AddHatchCounterCommand extends Command {
         this.pokemons = [];
     }
 
+    // 判断目前的宝可梦是否是可以孵化的
+    isHatchable(pokemon) {
+        // pokemon.is_legendary || pokemon.is_mythical || pokemon.evolution_chain_position >= 4
+        if (pokemon.is_unlocked || pokemon.is_hatching) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    // 计算随机选择宝可梦的权重
+    calcWeight(pokemon) {
+        if (pokemon.is_legendary || pokemon.is_mythical) {
+            return 2.0;
+        }
+        return (100.0 / Math.pow(pokemon.evolution_chain_position, 2));
+    }
+
     // 此函数目前只随机选择一个符合条件的 pokemon 作为新孵的蛋
     getRandomPokemonToHatch(store) {
         return new Promise((resolve, reject) => {
+            let totalWeight = 0;
+            let matchingItems = [];
+            
             const getUnhatchRequest = store.openCursor();
-            const matchingItems = [];
-
             getUnhatchRequest.onsuccess = (event) => {
                 const cursor = event.target.result;
                 if (cursor) {
                     const pokemon = cursor.value;
 
                     // 筛选符合条件的项
-                    if (!pokemon.is_unlocked && !pokemon.is_hatching && pokemon.evolution_chain_position === 1) {
-                        matchingItems.push(pokemon);
+                    if (this.isHatchable(pokemon)) {
+                        // 计算权重并记录
+                        const weight = this.calcWeight(pokemon);
+                        matchingItems.push({
+                            id: pokemon.id, 
+                            url_id: pokemon.url_id,
+                            weight: weight});
+                        totalWeight += weight;
                     }
                     cursor.continue();  // 继续遍历下一个条目
                 } else {
-                    // 遍历结束后从符合条件的项中随机选择一个
-                    if (matchingItems.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * matchingItems.length);
-                        resolve(matchingItems[randomIndex]);
+                    // 遍历结束后从符合条件的项中按权重随机选择一个
+                    const random = Math.random() * totalWeight;
+
+                    let accumulatedWeight = 0;
+                    let selectedPokemon = null;
+                    for (const item of matchingItems) {
+                        accumulatedWeight += item.weight;
+                        if (random <= accumulatedWeight) {
+                            selectedPokemon = item;
+                            break;
+                        }
+                    }
+
+                    if (selectedPokemon) {
+                        const getRequest = store.get([selectedPokemon.id, selectedPokemon.url_id]);
+                        getRequest.onsuccess = (event) => {
+                            pokemon = event.target.result;
+                            resolve(pokemon);
+                        }
+
+                        getRequest.onerror = (event) => {
+                            console.error('Error selecting pokemon:', event.target.error);
+                            reject('Error selecting pokemon');  // 没有找到符合条件的项
+                        }
                     } else {
-                        resolve(null);  // 没有找到符合条件的项
+                        reject('Error selecting pokemon');  // 没有找到符合条件的项
                     }
                 }
             };
@@ -1109,6 +1255,16 @@ class AddHatchCounterCommand extends Command {
                 reject('Error accessing Pokedex:', event.target.error);
             };
         });
+    }
+
+    // 把颜色转换成 bootstrap 里有设置的颜色, e.g. --bs-orange
+    convertToBootstrapExistedColor(color) {
+        switch (color) {
+            case 'brown':
+                return 'orange';
+            default:  // blue, purple, pink, red, yellow, green, black, white, gray
+                return color;
+        }
     }
 
     // Step 1: Update IndexedDB
@@ -1128,7 +1284,7 @@ class AddHatchCounterCommand extends Command {
                             pokemon.current_hatch_counter += this.counter;
     
                             // 如果孵化时间到, 则修改属性并随机开始一个新的孵化
-                            if (pokemon.current_hatch_counter >= pokemon.hatch_counter) {
+                            if (pokemon.current_hatch_counter >= pokemon.hatch_counter * pokemon.evolution_chain_position) {
                                 pokemon.is_unlocked = true;
                                 pokemon.unlocked_at = new Date().toISOString();
                                 pokemon.is_hatching = false;
@@ -1143,20 +1299,22 @@ class AddHatchCounterCommand extends Command {
                                         const putRequest = store.put(newPokemon);
                                         putRequest.onsuccess = () => {
                                             console.log(`#[${newPokemon.id}-${newPokemon.url_id}] pokemon successfully starts hatching`);
+                                            
+                                            // 保存更改的部分到 this.pokemons, 留待 Step 3 更新到数据库
+                                            this.pokemons.push({
+                                                id: newPokemon.id,
+                                                url_id: newPokemon.url_id,
+                                                is_hatching: newPokemon.is_hatching,
+                                                hatch_counter: newPokemon.hatch_counter,
+                                                current_hatch_counter: newPokemon.current_hatch_counter,
+                                                color: newPokemon.color,
+                                                evolution_chain_position: newPokemon.evolution_chain_position,
+                                            });
                                         };
                                         putRequest.onerror = () => {
                                             console.error(`#[${newPokemon.id}-${newPokemon.url_id}] pokemon failed to start hatching`);
                                         };
     
-                                        // 保存更改的部分到 this.pokemons, 留待 Step 3 更新到数据库
-                                        this.pokemons.push({
-                                            id: newPokemon.id,
-                                            url_id: newPokemon.url_id,
-                                            is_hatching: newPokemon.is_hatching,
-                                            hatch_counter: newPokemon.hatch_counter,
-                                            current_hatch_counter: newPokemon.current_hatch_counter,
-                                            color: newPokemon.color,
-                                        });
                                     }
                                 });
                             }
@@ -1165,7 +1323,7 @@ class AddHatchCounterCommand extends Command {
                             const putRequest = store.put(pokemon);
     
                             putRequest.onsuccess = () => {
-                                console.log(`Pokemon ${pokemon.name_en}/${pokemon.name_cn} hatched successfully`);
+                                console.log(`Pokemon ${pokemon.name_en}/${pokemon.name_cn} hatch counter successfully + ${this.counter}`);
                             };
                             putRequest.onerror = (event) => {
                                 console.error(`Error hatching pokemon ${pokemon.name_en}/${pokemon.name_cn}:`, event.target.error);
@@ -1181,6 +1339,7 @@ class AddHatchCounterCommand extends Command {
                                 hatch_counter: pokemon.hatch_counter,
                                 current_hatch_counter: pokemon.current_hatch_counter,
                                 color: pokemon.color,
+                                evolution_chain_position: pokemon.evolution_chain_position,
                             });
                         }
                     });
@@ -1201,14 +1360,17 @@ class AddHatchCounterCommand extends Command {
         eggProgressList.innerHTML = '';
         this.pokemons.forEach(pokemon => {
             if (pokemon.is_hatching) {
-                const progress = (pokemon.current_hatch_counter / pokemon.hatch_counter) * 100;
+                const currentCounter = pokemon.current_hatch_counter;
+                const totalCounter = pokemon.hatch_counter * Math.sqrt(pokemon.evolution_chain_position);
+                const progress = (currentCounter / totalCounter) * 100;
                 const imgSrc = `../static/imgs/eggs/${pokemon.color}.png`;
+                const color = this.convertToBootstrapExistedColor(pokemon.color);
                 eggProgressList.innerHTML += `
                     <div class="d-flex align-items-center">
                         <img class="me-2" src="${imgSrc}">
                         <div class="progress egg-progress my-3">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${progress}%; background-color: var(--bs-${pokemon.color});" aria-valuenow="${pokemon.current_hatch_counter}" aria-valuemin="0" aria-valuemax="${pokemon.hatch_counter}">
-                                ${pokemon.current_hatch_counter} / ${pokemon.hatch_counter}
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${progress}%; background-color: var(--bs-${color});" aria-valuenow="${currentCounter}" aria-valuemin="0" aria-valuemax="${totalCounter}">
+                                ${currentCounter} / ${totalCounter}
                             </div>
                         </div>
                     </div>

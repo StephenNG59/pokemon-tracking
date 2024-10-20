@@ -46,6 +46,24 @@
       height: 4rem;
     }
 
+    .toast {
+      background-color: var(--bs-success); /*--bs-success-bg-subtle*/
+      color: var(--bs-dark);  /* 黑色文字 */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);  /* 添加阴影 */
+      border-radius: 10px;  /* 圆角 */
+      width: auto;  /* 适当的宽度 */
+      text-align: center; /* 让文本居中 */
+    }
+    .toast-header {
+      font-size: 1.6em;
+    }
+    .toast-body {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        padding-left: 120px;  /* 增加内部间距 */
+        padding-right: 120px;  /* 增加内部间距 */
+        font-size: 1.6em;  /* 增加字体大小 */
+    }
     /* #days-range-btn-group label {
       font-family: "Libre Baskerville", serif;
       font-weight: 400;
@@ -189,6 +207,22 @@
   </div>
 </div>
 
+<!-- 完成一段时间的 Research 获得奖励的 Toast -->
+<div id="research-finish-toast-container" class="position-absolute top-50 start-50 p-3" style="z-index:1050; transform: translateX(-50%) translateY(-50%);">
+  <div id="research-finish-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Well Done!</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="toast-body">
+      <!-- 在这里显示获得的奖励 -->
+    </div>
+  </div>
+</div>
+
 <!-- =========================================================== -->
 <!-- JavaScript逻辑 -->
 <!-- 引入Bootstrap的JS组件 -->
@@ -199,7 +233,7 @@
 
 const commandManager = new CommandManager();
 const EveryUpdateSeconds = 60*5;  // 每5分钟更新孵蛋和宝可梦经验
-const EveryHatchCounterSeconds = 60*5;  // 每5分钟 hatch_counter+1
+const EveryHatchCounterSeconds = 60*5;  // 每10分钟 hatch_counter+1
 const EveryExpSeconds = 10;  // 每10秒 exp+1
 const EveryCoinSeconds = 100;  // 每100秒 coin+1
 const EveryEssenceSeconds = 60;  // 每1分钟 time essence+1
@@ -240,7 +274,8 @@ document.querySelectorAll('input[name="date-range"]').forEach(radio => {
 // 计时器开始计时
 function startTimer() {
   const startTime = Date.now() - elapsedTime * 1000;  // 继续上次计时
-  let lastEggUpdate = 0;  // 用于记录上次更新孵蛋进度的时间
+  // 用于记录上次更新孵蛋进度的时间
+  let lastEggUpdate = Math.floor(elapsedTime / EveryUpdateSeconds) * EveryUpdateSeconds;
 
   timerInterval = setInterval(() => {
     elapsedTime = Math.floor((Date.now() - startTime) / 1000);  // 以秒为单位
@@ -251,7 +286,7 @@ function startTimer() {
       lastEggUpdate = elapsedTime;
 
       // 1. 孵蛋进度
-      const addHatchCounterCommand = new AddHatchCounterCommand(Math.floor(EveryUpdateSeconds / EveryHatchCounterSeconds));
+      const addHatchCounterCommand = new AddHatchCounterCommand(EveryUpdateSeconds / EveryHatchCounterSeconds);
       commandManager.executeCommand(addHatchCounterCommand);
 
       // 2. 宝可梦经验
@@ -536,7 +571,8 @@ function distributeResearchTimeAndReward(manual) {
     const essence = addItemsList[1].delta;
     if (coin > 0 || essence > 0) {
       const toastText = (essence > 0 ? `Time Essence + ${essence}<br>` : '') + (coin > 0 ? `Coins + ${coin}<br>` : '');
-      const toastElement = document.getElementById('task-finish-toast');
+      const toastElement = document.getElementById('research-finish-toast');
+      toastElement.querySelector('.toast-body').innerHTML = toastText;
       const toast = new bootstrap.Toast(toastElement);
       toast.show();
       console.log("addItemsList", addItemsList);

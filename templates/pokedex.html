@@ -26,6 +26,10 @@
       direction: rtl;
       text-align: left; /* 保持文本从左到右排列 */
     }
+    .pokedex-content {
+      width: 80vw;
+      max-width: 80vw;
+    }
     
     /* ================ 自定义滚动条的样式 ====================== */
     /* 左侧 */
@@ -123,6 +127,7 @@
 
     .pokedex-detail {
       font-family: 'Poppins', sans-serif;  /* 设置整体字体 */
+      color: var(--bs-dark);
       height: 500px;
       width: 450px;
       /* display: flex; */
@@ -151,9 +156,11 @@
       height: 2rem;
       border-radius: 0.9rem;
     }
-    .progress-bar {
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.85rem;
+    .progress-text {
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      font-weight: 400;
     }
     #play-audio-btn {
       padding-top: 4px;
@@ -201,7 +208,7 @@
     }
 
     .pokedex-media {
-      min-height: 800px;
+      /* min-height: 800px; */
       max-width: 100%;
       padding: 10px;
       margin: 10px;
@@ -209,28 +216,30 @@
       background-color: var(--bs-primary-bg-subtle);
     }
     #pokedex-media-container {
-      display: flex;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-gap: 20px;
     }
-    .media-card {
-      width: 200px;
-      height: 200px;
-      border: 2px dashed #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-    .media-card img {
+    #pokedex-media-container img {
       width: 100%;
-      height: 100%;
+      height: auto;
+      border-radius: 10px;
       object-fit: cover;
+      display: block;
     }
+    #pokedex-media-container .media-card {
+      width: 100%;
+      height: 30vh;
+      border-radius: 10px;
+      display: block;
+      border: 3px dashed var(--bs-primary-border-subtle);
+    }
+
 
   </style>
 </head>
-<body>
 
+<body>
 <!-- =========================================================== -->
 <!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -297,7 +306,6 @@
           <!-- 在这里展示 Pinterest 图片 -->
         </div>
         <button id="open-pinterest-btn" aria-label="Open Pinterest Button" class="btn btn-primary my-3">Open Pinterest</button>
-        </iframe>
       </div>
     </div>
   </div>
@@ -317,6 +325,7 @@ const unlockOfficialArtworkLevel = 10;
 const unlockGifLevel = 20;
 const unlockPinterestLevel = 30;
 const unlockShinyArtworkLevel = 40;
+const unlockEveryImgLevel = 5;  // 每5级一张图片
 let isShiny = false;
 
 // ========================================================
@@ -358,16 +367,16 @@ function displaySidebarCard(pokemon) {
 
   // 缩略卡片内容
   sidebarCard.innerHTML = `
-        <div class="pokedex-card" id="pokedex-card-${url_id}">
-            <div class="pokedex-card-info">
-                <strong>No.${formattedId}  ${isUnlocked ? nameCN : '------'}</strong>
-                <span>${typeContext}</span>
-            </div>
-            <div class="pokedex-card-thumbnail">
-                <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${pokemon.name_cn}">
-            </div>
-        </div>
-    `;
+    <div class="pokedex-card" id="pokedex-card-${url_id}">
+      <div class="pokedex-card-info">
+        <strong>No.${formattedId}  ${isUnlocked ? nameCN : '------'}</strong>
+        <span>${typeContext}</span>
+      </div>
+      <div class="pokedex-card-thumbnail">
+        <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${pokemon.name_cn}">
+      </div>
+    </div>
+  `;
 
   pokedexSidebar.appendChild(sidebarCard);
 
@@ -427,6 +436,7 @@ function displayPokemon(id, url_id) {
         const weight = pokemon.weight / 10.0;
         const flavor_text = pokemon.flavor_text;
         const unlocked_at = pokemon.unlocked_at;
+        const img_urls = pokemon.img_urls;
 
         const hp = pokemon.hp;
         const atk = pokemon.attack;
@@ -466,10 +476,10 @@ function displayPokemon(id, url_id) {
           <div class="d-flex align-items-center my-2" style="margin:3px;">
             <!-- 等级和经验值进度条 -->
             <h4 class="my-2">Lv.${level}</h4>
-            <div class="progress ms-3 w-auto">
-              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: ${progress}%;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}">
-                ${this_level_current_exp} / ${this_level_max_exp}
-              </div>
+            <div class="progress position-relative ms-3 w-auto">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: ${progress}%;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}"></div>
+              <!-- 添加一个容器用于显示文字 -->
+              <span class="progress-text position-absolute w-100 text-center" >${this_level_current_exp} / ${this_level_max_exp}</span>
             </div>
 
             <!-- 声音播放 -->
@@ -558,15 +568,7 @@ function displayPokemon(id, url_id) {
         };
 
         // 更新媒体展示
-        // ===================================================================
-        const openPinterestBtn = document.getElementById('open-pinterest-btn');
-        const mediaContainer = document.getElementById('pokedex-media-container');
-        openPinterestBtn.onclick = function() {
-          const searchUrl = `https://www.pinterest.com/search/pins/?q=pokemon%20${name_en}%20wallpapers`;
-          const height = window.screen.availHeight;
-          const width = 660;
-          window.open(searchUrl, '_blank', `width=${width},height=${height},scrollbars=yes,resizable=yes`);
-        };
+        displayMediaContainer(pokemon);
 
         // 一些功能的限制或删除
         // ====================================================================
@@ -601,6 +603,66 @@ function displayPokemon(id, url_id) {
       console.error('Error fetching Pokemon details from IndexedDB:', event.target.error);
     };
   });
+}
+
+// 更新媒体展示
+function displayMediaContainer(pokemon) {
+  const openPinterestBtn = document.getElementById('open-pinterest-btn');
+  openPinterestBtn.onclick = function() {
+    const searchUrl = `https://www.pinterest.com/search/pins/?q=pokemon%20${pokemon.name_en}%20wallpapers`;
+    const height = window.screen.availHeight;
+    const width = 660;
+    window.open(searchUrl, '_blank', `width=${width},height=${height},scrollbars=yes,resizable=yes`);
+  };
+
+  const mediaContainer = document.getElementById('pokedex-media-container');
+  mediaContainer.innerHTML = '';
+  if (pokemon.img_urls) {
+    pokemon.img_urls.forEach(url => {
+      const imgCard = document.createElement('img');
+      imgCard.src = url;
+      mediaContainer.appendChild(imgCard);
+    });
+  } else {
+    pokemon.img_urls = [];
+  }
+  
+  createAddImgCard(pokemon);
+}
+
+// 添加一个拖动可以添加图片的框
+function createAddImgCard(pokemon) {
+  // 点击可以添加图片的卡片(每5级可以放一张)
+  if (Math.floor(pokemon.level / unlockEveryImgLevel) > pokemon.img_urls.length) {
+    const addImgCard = document.createElement('div');
+    addImgCard.className = "media-card";
+
+    const mediaContainer = document.getElementById('pokedex-media-container');
+    mediaContainer.appendChild(addImgCard);
+
+    addImgCard.ondragover = function() {
+      event.preventDefault();  // 阻止默认行为，允许拖动
+      addImgCard.style.borderColor = "var(--bs-primary)";
+    };
+
+    addImgCard.ondragleave = function() {
+      addImgCard.style.borderColor = "var(--bs-primary-border-subtle)";
+    };
+
+    addImgCard.ondrop = function() {
+      event.preventDefault();
+      addImgCard.style.borderColor = "var(--bs-primary-border-subtle)";
+
+      const draggedUrl = event.dataTransfer.getData('text/plain');
+      if (draggedUrl) {
+        // 添加 Image
+        addPokemonImgCommand = new AddPokemonImgCommand(pokemon.id, pokemon.url_id, draggedUrl);
+        commandManager.executeCommand(addPokemonImgCommand);
+        // 重新更新媒体展示
+        displayMediaContainer(pokemon);
+      }
+    }
+  }
 }
 
 // 通过种族值和等级计算当前数值

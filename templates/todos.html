@@ -7,6 +7,9 @@
   <!-- 引入Bootswatch: Darkly主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/minty/bootstrap.min.css" rel="stylesheet">
   <style>
+    .accordion-title {
+      font-weight: 600;
+    }
     .toast {
       background-color: var(--bs-success); /*--bs-success-bg-subtle*/
       color: var(--bs-dark);  /* 黑色文字 */
@@ -19,11 +22,11 @@
       font-size: 1.6em;
     }
     .toast-body {
-        padding-top: 20px;
-        padding-bottom: 20px;
-        padding-left: 120px;  /* 增加内部间距 */
-        padding-right: 120px;  /* 增加内部间距 */
-        font-size: 1.6em;  /* 增加字体大小 */
+      padding-top: 20px;
+      padding-bottom: 20px;
+      padding-left: 120px;  /* 增加内部间距 */
+      padding-right: 120px;  /* 增加内部间距 */
+      font-size: 1.6em;  /* 增加字体大小 */
     }
   </style>
 </head>
@@ -256,7 +259,7 @@
 
 
 <!-- 提示任务完成获得得到奖励的 Toast -->
-<div id="task-finish-toast-container" class="position-fixed top-40 start-50 p-3" style="z-index:1050; transform: translateX(-50%) translateY(-50%);">
+<div id="task-finish-toast-container" class="position-absolute top-50 start-50 p-3" style="z-index:1050; transform: translateX(-50%) translateY(-50%);">
   <div id="task-finish-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header">
       <strong class="me-auto">Well Done!</strong>
@@ -587,6 +590,7 @@ document.getElementById('toggle-details').addEventListener('click', function() {
   // 更新 Modal 的标题和按钮
   document.getElementById('task-modal-label').textContent = 'New Task';
   document.getElementById('modal-save-btn').textContent = 'Create';
+  document.getElementById('modal-task-title').value = document.getElementById('task-title').value.trim();
 
   // 显示 Modal
   const taskModal = new bootstrap.Modal(document.getElementById('task-modal'));
