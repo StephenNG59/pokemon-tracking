@@ -37,6 +37,9 @@ class TaskQueueManager {
                     });
                 });
             }).catch(error => {
+                console.error('Error fetching todos');
+                this.queue.unshift(task);
+                setTimeout(() => this.processQueue(), 10000);
                 reject('Error: ' + error);
             });
 
@@ -57,7 +60,6 @@ class TaskQueueManager {
                 console.error('Error creating task');
                 this.queue.unshift(task);
                 setTimeout(() => this.processQueue(), 10000);
-            }).catch(error => {
                 reject('Error: ' + error);
             });
             resolve();
@@ -146,6 +148,9 @@ class TaskQueueManager {
                 });
             })
             .catch(error => {
+                console.error('Error fetching pokedex');
+                this.queue.unshift(task);  // Re-add the task if it fails
+                setTimeout(() => this.processQueue(), 10000);  // Retry in 10 seconds
                 reject('Error: ' + error);
             });
             resolve();
@@ -173,6 +178,9 @@ class TaskQueueManager {
                 })
             })
             .catch(error => {
+                console.error('Error fetching research');
+                this.queue.unshift(task);  // Re-add the task if it fails
+                setTimeout(() => this.processQueue(), 10000);  // Retry in 10 seconds
                 reject('Error: ' + error);
             });
             resolve();
@@ -216,6 +224,9 @@ class TaskQueueManager {
                 })
             })
             .catch(error => {
+                console.error('Error fetching items');
+                this.queue.unshift(task);
+                setTimeout(() => this.processQueue(), 10000);
                 reject('Error: ' + error);
             });
             resolve();
@@ -235,7 +246,6 @@ class TaskQueueManager {
                 console.error('Error adding item');
                 this.queue.unshift(task);
                 setTimeout(() => this.processQueue(), 10000);
-            }).catch(error => {
                 reject('Error: ' + error);
             });
             resolve();
@@ -255,7 +265,6 @@ class TaskQueueManager {
                 console.error('Error adding pokemon exp:', error);
                 this.queue.unshift(task);
                 setTimeout(() => this.processQueue(), 10000);
-            }).catch(error => {
                 reject('Error: ' + error);
             });
             resolve();
@@ -275,7 +284,25 @@ class TaskQueueManager {
                 console.error('Error adding pokemon img:', error);
                 this.queue.unshift(task);
                 setTimeout(() => this.processQueue(), 10000);
-            }).catch(error => {
+                reject('Error: ' + error);
+            });
+            resolve();
+        });
+    }
+
+    addPokemonLR(task) {
+        return new Promise((resolve, reject) => {
+            fetch('/add_pokemon_lr', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task.data),
+            })
+            .then(response => response.json())
+            .then(() => this.processQueue())
+            .catch((error) => {
+                console.error('Error adding pokemon learning rate:', error);
+                this.queue.unshift(task);
+                setTimeout(() => this.processQueue(), 10000);
                 reject('Error: ' + error);
             });
             resolve();
@@ -346,6 +373,9 @@ class TaskQueueManager {
                 break;
             case 'add_pokemon_img':
                 this.addPokemonImg(task).then(() => this.processQueue());
+                break;
+            case 'add_pokemon_lr':
+                this.addPokemonLR(task).then(() => this.processQueue());
                 break;
             case 'update_pokemon':
                 this.updatePokemon(task).then(() => this.processQueue());
@@ -937,7 +967,16 @@ class FetchItemsCommand extends Command {
 
     // TODO Step 2: Update DOM
     updateDOMWithItems(items) {
-
+        items.forEach(item => {
+            // coin
+            if (item.id === 1) {
+                document.getElementById('coin-number').textContent = item.quantity;
+            }
+            // time essence
+            else if (item.id === 11) {
+                document.getElementById('time-number').textContent = item.quantity;
+            }
+        });
     }
 
     // Step 3: Add to queue for backend sync
@@ -968,6 +1007,10 @@ class AddItemCommand extends Command {
     // Step 1: Update IndexedDB
     updateIndexedDB() {
         return new Promise((resolve, reject) => {
+            if (this.deltaQuantity === 0) {
+                resolve();
+            }
+
             openIndexedDB().then(db => {
                 const transaction = db.transaction('Items', 'readwrite');
                 const store = transaction.objectStore('Items');
@@ -983,7 +1026,7 @@ class AddItemCommand extends Command {
                     const updateRequest = store.put(data);
                     updateRequest.onsuccess = () => {
                         console.log(`本地道具成功增加${this.deltaQuantity}`);
-                        resolve();
+                        resolve(data);
                     }
                     updateRequest.onerror = (event) => {
                         console.error('本地道具更新失败');
@@ -1000,12 +1043,21 @@ class AddItemCommand extends Command {
     }
 
     // TODO Step 2: Update DOM
-    updateDOM() {
-
+    updateDOM(item) {
+        if (item.id === 1) {
+            document.getElementById('coin-number').textContent = item.quantity;
+        }
+        else if (item.id === 11) {
+            document.getElementById('time-number').textContent = item.quantity;
+        }
     }
 
     // Step 3: Add to queue for backend sync
     addToSyncQueue() {
+        if (this.deltaQuantity === 0) {
+            return;
+        }
+
         taskQueueManager.addTaskToQueue({
             action: 'add_item',
             data: { id: this.id, delta: this.deltaQuantity }
@@ -1014,8 +1066,8 @@ class AddItemCommand extends Command {
 
     // Execute
     execute() {
-        this.updateIndexedDB().then(() => {
-            this.updateDOM();
+        this.updateIndexedDB().then((data) => {
+            this.updateDOM(data);
             this.addToSyncQueue();
         }).catch(error => {
             console.error('Error adding item:', error);
@@ -1043,7 +1095,7 @@ class AddPokemonExpCommand extends Command {
                     pokemons.forEach(pokemon => {
                         if (pokemon.is_unlocked) {
                             // 增加经验并更新等级: level = floor((exp)^(1/3))
-                            pokemon.exp += this.exp;
+                            pokemon.exp += Math.round(this.exp * pokemon.learning_rate);
                             pokemon.level = Math.max(Math.floor(Math.pow(pokemon.exp, 1/3)), 1);
 
                             // 保存完整的宝可梦对象
@@ -1171,7 +1223,7 @@ class AddPokemonImgCommand extends Command {
     }
 }
 
-class AddHatchCounterCommand extends Command {
+class AddPokemonHatchCounterCommand extends Command {
     constructor(counter) {
         super();
         this.counter = counter;
@@ -1237,7 +1289,7 @@ class AddHatchCounterCommand extends Command {
                     if (selectedPokemon) {
                         const getRequest = store.get([selectedPokemon.id, selectedPokemon.url_id]);
                         getRequest.onsuccess = (event) => {
-                            pokemon = event.target.result;
+                            const pokemon = event.target.result;
                             resolve(pokemon);
                         }
 
@@ -1262,7 +1314,9 @@ class AddHatchCounterCommand extends Command {
         switch (color) {
             case 'brown':
                 return 'orange';
-            default:  // blue, purple, pink, red, yellow, green, black, white, gray
+            case 'white':
+                return 'gray-400';
+            default:  // blue, purple, pink, red, yellow, green, black, gray
                 return color;
         }
     }
@@ -1284,7 +1338,7 @@ class AddHatchCounterCommand extends Command {
                             pokemon.current_hatch_counter += this.counter;
     
                             // 如果孵化时间到, 则修改属性并随机开始一个新的孵化
-                            if (pokemon.current_hatch_counter >= pokemon.hatch_counter * pokemon.evolution_chain_position) {
+                            if (isHatched(pokemon)) {
                                 pokemon.is_unlocked = true;
                                 pokemon.unlocked_at = new Date().toISOString();
                                 pokemon.is_hatching = false;
@@ -1296,25 +1350,28 @@ class AddHatchCounterCommand extends Command {
                                         newPokemon.is_hatching = true;
                                         newPokemon.current_hatch_counter = 0;
     
+                                        console.log("newPokemon:", newPokemon);
                                         const putRequest = store.put(newPokemon);
                                         putRequest.onsuccess = () => {
-                                            console.log(`#[${newPokemon.id}-${newPokemon.url_id}] pokemon successfully starts hatching`);
+                                            console.log(`#[${newPokemon.weight/10}kg-${newPokemon.height/10}m] pokemon successfully starts hatching`);
                                             
                                             // 保存更改的部分到 this.pokemons, 留待 Step 3 更新到数据库
-                                            this.pokemons.push({
-                                                id: newPokemon.id,
-                                                url_id: newPokemon.url_id,
-                                                is_hatching: newPokemon.is_hatching,
-                                                hatch_counter: newPokemon.hatch_counter,
-                                                current_hatch_counter: newPokemon.current_hatch_counter,
-                                                color: newPokemon.color,
-                                                evolution_chain_position: newPokemon.evolution_chain_position,
-                                            });
+                                            this.pokemons.push(newPokemon
+                                                // {
+                                                // id: newPokemon.id,
+                                                // url_id: newPokemon.url_id,
+                                                // is_hatching: newPokemon.is_hatching,
+                                                // hatch_counter: newPokemon.hatch_counter,
+                                                // current_hatch_counter: newPokemon.current_hatch_counter,
+                                                // color: newPokemon.color,
+                                                // evolution_chain_position: newPokemon.evolution_chain_position,
+                                                // }
+                                            );
                                         };
                                         putRequest.onerror = () => {
                                             console.error(`#[${newPokemon.id}-${newPokemon.url_id}] pokemon failed to start hatching`);
                                         };
-    
+                                        console.log("this.pokemons(should have new one):", this.pokemons);
                                     }
                                 });
                             }
@@ -1323,24 +1380,27 @@ class AddHatchCounterCommand extends Command {
                             const putRequest = store.put(pokemon);
     
                             putRequest.onsuccess = () => {
-                                console.log(`Pokemon ${pokemon.name_en}/${pokemon.name_cn} hatch counter successfully + ${this.counter}`);
+                                console.log(`Pokemon ${pokemon.id}/${pokemon.url_id} hatch counter successfully + ${this.counter}`);
                             };
                             putRequest.onerror = (event) => {
                                 console.error(`Error hatching pokemon ${pokemon.name_en}/${pokemon.name_cn}:`, event.target.error);
                             };
     
                             // 保存更改的部分到 this.pokemons, 留待 Step 3 更新到数据库
-                            this.pokemons.push({
-                                id: pokemon.id,
-                                url_id: pokemon.url_id,
-                                is_unlocked: pokemon.is_unlocked,
-                                unlocked_at: pokemon.unlocked_at,
-                                is_hatching: pokemon.is_hatching,
-                                hatch_counter: pokemon.hatch_counter,
-                                current_hatch_counter: pokemon.current_hatch_counter,
-                                color: pokemon.color,
-                                evolution_chain_position: pokemon.evolution_chain_position,
-                            });
+                            this.pokemons.push(pokemon
+                                // {
+                                // id: pokemon.id,
+                                // url_id: pokemon.url_id,
+                                // is_unlocked: pokemon.is_unlocked,
+                                // unlocked_at: pokemon.unlocked_at,
+                                // is_hatching: pokemon.is_hatching,
+                                // hatch_counter: pokemon.hatch_counter,
+                                // current_hatch_counter: pokemon.current_hatch_counter,
+                                // color: pokemon.color,
+                                // evolution_chain_position: pokemon.evolution_chain_position,
+                                // }
+                            );
+                            console.log("this.pokemons:", this.pokemons);
                         }
                     });
                     resolve(this.pokemons);
@@ -1361,7 +1421,7 @@ class AddHatchCounterCommand extends Command {
         this.pokemons.forEach(pokemon => {
             if (pokemon.is_hatching) {
                 const currentCounter = pokemon.current_hatch_counter;
-                const totalCounter = pokemon.hatch_counter * Math.sqrt(pokemon.evolution_chain_position);
+                const totalCounter = totalHatchCounterNeeded(pokemon);
                 const progress = (currentCounter / totalCounter) * 100;
                 const imgSrc = `../static/imgs/eggs/${pokemon.color}.png`;
                 const color = this.convertToBootstrapExistedColor(pokemon.color);
@@ -1369,8 +1429,8 @@ class AddHatchCounterCommand extends Command {
                     <div class="d-flex align-items-center">
                         <img class="me-2" src="${imgSrc}">
                         <div class="progress egg-progress my-3">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${progress}%; background-color: var(--bs-${color});" aria-valuenow="${currentCounter}" aria-valuemin="0" aria-valuemax="${totalCounter}">
-                                ${currentCounter} / ${totalCounter}
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${Math.max(progress, 5)}%; background-color: var(--bs-${color});" aria-valuenow="${currentCounter}" aria-valuemin="0" aria-valuemax="${totalCounter}">
+                                ${currentCounter} / ${Math.round(totalCounter)}
                             </div>
                         </div>
                     </div>
@@ -1394,10 +1454,86 @@ class AddHatchCounterCommand extends Command {
     execute() {
         this.updateIndexedDB().then(() => {
             console.log('Pokemons successfully updated in IndexedDB');
-            this.updateDOM();
-            this.addToSyncQueue();
+            setTimeout(() => this.updateDOM(), 1000);
+            // this.updateDOM();
+            setTimeout(() => this.addToSyncQueue(), 1000);
+            // this.addToSyncQueue();
         }).catch((error) => {
             console.error('Failed to update pokemons:', error);
+        });
+    }
+}
+
+class AddPokemonLearningRateCommand extends Command {
+    constructor(id, url_id, times) {
+        super();
+        this.id = id;
+        this.url_id = url_id;
+        this.times = times; // Math.pow(1.01, times);
+    }
+
+    // Step 1: Update IndexedDB
+    updateIndexedDB() {
+        return new Promise((resolve, reject) => {
+            openIndexedDB().then(db => {
+                // 修改本地 Pokedex 数据表
+                const transaction = db.transaction('Pokedex', 'readwrite');
+                const store = transaction.objectStore('Pokedex');
+                const getRequest = store.get([this.id, this.url_id]);
+
+                getRequest.onsuccess = (event) => {
+                    const pokemon = event.target.result;
+
+                    // 更改 learning_rate
+                    pokemon.learning_rate *= this.times;
+
+                    // 保存完整的宝可梦对象
+                    const putRequest = store.put(pokemon);
+
+                    putRequest.onsuccess = () => {
+                        console.log(`Pokemon learning_rate locally updated:${pokemon.name_cn}-lr${pokemon.learning_rate}`);
+                    };
+        
+                    putRequest.onerror = (event) => {
+                        console.error('Error updating pokemon exp:', event.target.error);
+                    };
+
+                    resolve(pokemon);
+                }
+
+                getRequest.onerror = (event) => {
+                    console.error('查找宝可梦记录失败');
+                    reject('Error getting pokedex:', event.target.error);
+                };
+            });
+        });
+    }
+
+    // Step 2: Update DOM
+    updateDOMWithPokemon(pokemon) {
+        const sidebarCard = document.getElementById(`pokedex-card-${this.url_id}`);
+        if (sidebarCard) {
+            const progressBar = sidebarCard.querySelector('.progress-bar-animated');
+            progressBar.style.setProperty('animation-duration', `${3. / Math.sqrt(pokemon.learning_rate)}s`);
+        }
+    }
+
+    // Step 3: Add to queue for backend sync
+    addToSyncQueue() {
+        taskQueueManager.addTaskToQueue({
+            action: 'add_pokemon_lr',
+            data: { id: this.id, url_id: this.url_id, times: this.times }
+        });
+    }
+
+    // Execute
+    execute() {
+        this.updateIndexedDB().then((pokemon) => {
+            console.log('Learning rate successfully multiplied in IndexedDB:', this.times);
+            this.updateDOMWithPokemon(pokemon);
+            this.addToSyncQueue();
+        }).catch((error) => {
+            console.error('Failed to update learning rate:', error);
         });
     }
 }
@@ -1434,3 +1570,12 @@ function openIndexedDB() {
     });
 }
 
+// 计算当前宝可梦孵化所需的hatch_counter
+function totalHatchCounterNeeded(pokemon) {
+    return pokemon.hatch_counter * Math.sqrt(pokemon.evolution_chain_position);
+}
+
+// 判断目前宝可梦的孵化是否已完成
+function isHatched(pokemon) {
+    return (pokemon.current_hatch_counter >= totalHatchCounterNeeded(pokemon));
+}

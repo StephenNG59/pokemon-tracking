@@ -16,8 +16,8 @@
     /* 自定义左边侧边栏和布局样式 */
     .pokedex-sidebar {
       height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
-      min-width: 360px;
-      width: 20vw;
+      /* min-width: 360px; */
+      width: 380px;
       overflow-y: scroll;  /* 垂直滚动 */
       border-right: 10px solid var(--bs-primary-bg-subtle);  /* 添加分割线 */
       background-color: var(--bs-light);
@@ -27,8 +27,16 @@
       text-align: left; /* 保持文本从左到右排列 */
     }
     .pokedex-content {
-      width: 80vw;
-      max-width: 80vw;
+      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
+      width: calc(100vw - 380px);
+      /* max-width: 80vw; */
+      flex-grow: 1;  /* 占满剩下的宽度 */
+      display: flex;  /* 使内容能够水平或垂直布局 */
+      flex-direction: column;  /* 垂直排列子元素 */
+      justify-content: left;  /* 根据需求调整对齐方式 */
+      padding: 20px;  /* 适当的内边距 */
+      overflow-y: scroll;
+      background-color: var(--bs-light-bg-subtle);
     }
     
     /* ================ 自定义滚动条的样式 ====================== */
@@ -78,6 +86,7 @@
       width: auto;
       margin-bottom: 10px;
       border-radius: 10px;
+      /* color: var(--bs-dark); */
       color: rgb(255, 255, 255);
     }
     .pokedex-card-info {
@@ -93,6 +102,8 @@
       padding: 0px;
       border-top-left-radius: 50px;
       border-bottom-left-radius: 50px;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
       display: flex;
       justify-content: flex-end;
       width: 95px;
@@ -107,18 +118,24 @@
       width: auto;
       object-fit: contain;
     }
-
-    .pokedex-content {
-      flex-grow: 1;  /* 占满剩下的宽度 */
-      display: flex;  /* 使内容能够水平或垂直布局 */
-      flex-direction: column;  /* 垂直排列子元素 */
-      justify-content: left;  /* 根据需求调整对齐方式 */
-      padding: 20px;  /* 适当的内边距 */
-      height: calc(100vh - 60px);  /* 需要去掉导航栏的高度 56px 使得滚动条正常工作 */
-      width: auto;
-      overflow-y: scroll;
-      background-color: var(--bs-light-bg-subtle);
+    .pokedex-card .progress-text {
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--bs-dark);
     }
+    .pokedex-card button {
+      padding: 0;
+      margin: 0;
+      height: 24px;
+      border-radius: 1.5rem;
+      /* border-color: white; */
+    }
+    .pokedex-card button:hover {
+      /* color: var(--bs-primary); */
+      background-color: var(--bs-secondary);
+      /* border-color: lightgreen; */
+    }
+
     .pokedex-upper-row {
       display: flex;
       justify-content: space-between;
@@ -128,8 +145,9 @@
     .pokedex-detail {
       font-family: 'Poppins', sans-serif;  /* 设置整体字体 */
       color: var(--bs-dark);
-      height: 500px;
-      width: 450px;
+      height: 550px;
+      min-width: 400px;
+      width: 400px;
       /* display: flex; */
       /* flex-direction: column; */
       /* justify-content: start; */
@@ -151,12 +169,12 @@
     .pokedex-detail h4 {
       font-weight: 500;
     }
-    .progress {
+    .pokedex-detail .progress {
       flex-grow: 1;
       height: 2rem;
       border-radius: 0.9rem;
     }
-    .progress-text {
+    .pokedex-detail .progress-text {
       top: 50%;
       transform: translateY(-50%);
       font-size: 1rem;
@@ -174,20 +192,20 @@
     }
 
     .pokedex-image {
-      height: 500px;
+      height: 550px;
       max-width: 100%;
       flex-grow: 1; /* 自动填充整个宽度 */
-      display: flex;
-      flex-direction: row;
-      justify-content: end;
+      /* display: flex; */
+      /* flex-direction: row; */
+      /* justify-content: end; */
       padding: 10px;
       margin: 10px;
       border-radius: 10px;
       background-color: var(--bs-secondary-bg-subtle);
     }
     .pokedex-image-official-artwork {
-      width: fit-content;
-      height: 475px;
+      max-width: fit-content;
+      /* height: 475px; */
       object-fit: contain;
     }
     .shiny-toggle-btn {
@@ -268,6 +286,14 @@
         </li>
       </ul>
     </div>
+
+    <!-- 显示金币和时间精华 -->
+    <div>
+      ✨
+      <span id="coin-number" class="me-2"></span>
+      ⌛
+      <span id="time-number" class="me-2"></span>
+    </div>
   </div>
 </nav>
 
@@ -275,9 +301,9 @@
 <!-- =========================================================== -->
 <!-- 主内容区域 -->
 <div class="container-fluid">
-  <div class="row">
+  <div class="row flex-nowrap">
     <!-- 左侧滑动栏 -->
-    <div class="pokedex-sidebar ">
+    <div class="pokedex-sidebar">
       <!-- <h5 class="text-center">Pokédex</h5> -->
       <div id="pokedex-list" class="mt-4">
         <!-- 在这里动态加载宝可梦缩略卡片 -->
@@ -314,9 +340,12 @@
 
 <!-- Bootswatch Minty JS & Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- 引入 Color Thief 用于提取图片颜色 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
 <script src="{{ url_for('static', filename='js/command.js') }}"></script>
+<!-- 引入 Masonry.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>
 
 <script>
 const commandManager = new CommandManager();
@@ -325,19 +354,24 @@ const unlockOfficialArtworkLevel = 10;
 const unlockGifLevel = 20;
 const unlockPinterestLevel = 30;
 const unlockShinyArtworkLevel = 40;
-const unlockEveryImgLevel = 5;  // 每5级一张图片
+const unlockEveryImgLevel = 10;  // 每10级一张图片
 let isShiny = false;
 
 // ========================================================
 // 页面加载时
 document.addEventListener('DOMContentLoaded', function () {
   const fetchPokedexCommand = new FetchPokedexCommand();
+  const fetchItemsCommand = new FetchItemsCommand();
   commandManager.executeCommand(fetchPokedexCommand);
+  commandManager.executeCommand(fetchItemsCommand);
 });
 
 // 在侧边栏中展示当前宝可梦缩略卡片
 function displaySidebarCard(pokemon) {
-    const pokedexSidebar = document.getElementById('pokedex-list');
+  // 只显示已解锁的
+  if (!pokemon.is_unlocked) { return; }
+
+  const pokedexSidebar = document.getElementById('pokedex-list');
   if (!pokedexSidebar) { return; }
 
   const sidebarCard = document.createElement('div');
@@ -349,64 +383,108 @@ function displaySidebarCard(pokemon) {
   const imgSrc = `static/imgs/pokedex/thumbnail/${url_id}.png`;
   const isUnlocked = pokemon.is_unlocked;
   const nameCN = pokemon.name_cn;
+
+
+  // 1. 如果还未解锁, 显示灰色头像, 没有其他信息
+  if (!isUnlocked) {
+    sidebarCard.innerHTML = `
+      <div class="pokedex-card" id="pokedex-card-${url_id}">
+        <div class="pokedex-card-info">
+          <strong>No.${formattedId}&nbsp&nbsp------</strong>
+          <span>---- / ----</span>
+        </div>
+        <div class="pokedex-card-thumbnail">
+          <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${nameCN}">
+        </div>
+      </div>
+    `;
+    pokedexSidebar.appendChild(sidebarCard);
+
+    // 设置卡片背景为灰色, 宝可梦缩略图为灰色剪影
+    const card = document.getElementById(`pokedex-card-${url_id}`);
+    const thumbnailElement = document.getElementById(`pokedex-thumbnail-${url_id}`);
+    card.style.backgroundColor = "var(--bs-gray)";
+    // 如果加上 invert(1) 或者直接 brightness(1) 就是白色剪影
+    thumbnailElement.style.filter = 'brightness(0) invert(0.4)';
+
+    return;
+  }
+
+
+  // 2. 如果解锁了, 显示更多信息, 并注册点击事件
+  // 关于当前等级和经验值的计算
+  const level = pokemon.level;
+  const exp = pokemon.exp;
+  const next_level_exp = Math.pow(level + 1, 3);
+  const prev_level_exp = (level === 1) ? 0 : Math.pow(level, 3);
+  const this_level_current_exp = Math.max(exp - prev_level_exp, 0);
+  const this_level_max_exp = next_level_exp - prev_level_exp;
+  const progress = (this_level_current_exp / this_level_max_exp) * 100;
+  const learning_rate = pokemon.learning_rate;
+
+  // 类型
   const type1 = pokemon.type1;
   const type2 = pokemon.type2;
-
-  let typeContext;
-  if (isUnlocked) {
-    typeContext = `${type1}`;
-    if (type2) {
-      typeContext = typeContext + ` / ${type2}`;
-    }
-  } else {
-    typeContext = '----';
-    if (type2) {
-      typeContext = typeContext + ' / ----';
-    }
-  }
+  const type1_emoji = type1.match(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}][\uFE0F]?/u)[0];
+  const type2_emoji = type2 ? type2.match(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}][\uFE0F]?/u)[0] : '';
+  const typeContext = type1_emoji + (type2 ? '/' + type2_emoji : '');
 
   // 缩略卡片内容
   sidebarCard.innerHTML = `
     <div class="pokedex-card" id="pokedex-card-${url_id}">
       <div class="pokedex-card-info">
-        <strong>No.${formattedId}  ${isUnlocked ? nameCN : '------'}</strong>
-        <span>${typeContext}</span>
+        <!-- 编号名字 -->
+        <strong>No.${formattedId}&nbsp&nbsp${nameCN}</strong>
+        <!-- 类型经验 -->
+        <div class="d-flex align-items-center justify-content-between" style="font-size: small;">
+          <span style="width: 45px;">${typeContext}</span>
+          <div class="progress position-relative" style="width: 130px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${progress}%; animation-duration: ${3. / Math.sqrt(learning_rate)}s;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}"></div>
+            <span class="progress-text position-absolute w-100 text-center">Lv.${level}</span>
+          </div>
+          <button class="btn add-lr-100" url-id="${url_id}">>></button>
+        </div>
       </div>
       <div class="pokedex-card-thumbnail">
-        <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${pokemon.name_cn}">
+        <img id="pokedex-thumbnail-${url_id}" src="${imgSrc}" alt="${nameCN}">
       </div>
     </div>
   `;
-
   pokedexSidebar.appendChild(sidebarCard);
 
   // 图片加载后提取颜色
-  const card = document.getElementById(`pokedex-card-${url_id}`);
   const thumbnailElement = document.getElementById(`pokedex-thumbnail-${url_id}`);
+  
+  // 设置缩略卡片颜色为宝可梦的主色
+  thumbnailElement.addEventListener('load', () => {
+    if (thumbnailElement.complete && thumbnailElement.naturalHeight !== 0) {
+      // 提取图片主题色
+      let color = colorThief.getColor(thumbnailElement);
 
-  // 根据解锁状态设置缩略卡片颜色为灰色或彩色
-  if (isUnlocked === false) {
-    // 设置卡片背景为灰色
-    card.style.backgroundColor = "var(--bs-gray)"; // "rgba(66,66,66,0.2)", "#424242"
-    // 设置宝可梦缩略图为黑色剪影. 如果加上 invert(1) 或者直接 brightness(1) 就是白色剪影
-    thumbnailElement.style.filter = 'brightness(0) invert(0.4)';
-  } else {
-    thumbnailElement.addEventListener('load', () => {
-      if (thumbnailElement.complete && thumbnailElement.naturalHeight !== 0) {
-        // 提取图片主题色
-        let color = colorThief.getColor(thumbnailElement);
-        color = increaseSaturationLightness(color, 12, 6);
-        card.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-      }
-    });
-  }
+      // 设置卡片背景色
+      let colorCard = increaseSaturationLightness(color, 12, 6);
+      const card = document.getElementById(`pokedex-card-${url_id}`);
+      card.style.backgroundColor = `rgb(${colorCard[0]}, ${colorCard[1]}, ${colorCard[2]})`;
+
+      // 设置经验条颜色
+      const progressBar = card.querySelector('.progress-bar');
+      progressBar.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+    }
+  });
 
   // 如果已解锁, 点击可以查看详情
-  if (isUnlocked) {
-    sidebarCard.addEventListener('click', () => {
-      displayPokemon(id, url_id);
-    });
-  }
+  sidebarCard.addEventListener('click', () => {
+    displayPokemon(id, url_id);
+  });
+
+  // 加速学习速率的按钮(100个时间精华 -> 学习速率 *= 2)
+  const addLR100Btn = sidebarCard.querySelector('.add-lr-100');
+  addLR100Btn.onclick = function() {
+    const addLRCommand = new AddPokemonLearningRateCommand(id, url_id, 2);
+    const addItemCommand = new AddItemCommand(11, -100);
+    commandManager.executeCommand(addLRCommand);
+    commandManager.executeCommand(addItemCommand);
+  };
 }
 
 // 展示宝可梦详细信息
@@ -458,6 +536,7 @@ function displayPokemon(id, url_id) {
         const this_level_current_exp = Math.max(exp - prev_level_exp, 0);
         const this_level_max_exp = next_level_exp - prev_level_exp;
         const progress = (this_level_current_exp / this_level_max_exp) * 100;
+        const learning_rate = pokemon.learning_rate;
 
         // 关于解锁日期距今天数的计算
         const unlockedDate = new Date(unlocked_at);
@@ -473,17 +552,17 @@ function displayPokemon(id, url_id) {
           <!-- 名字 (中英文) -->
           <h2 class="mb-2">No.${formattedId}&nbsp;&nbsp;${name_en}</h2>
           
-          <div class="d-flex align-items-center my-2" style="margin:3px;">
+          <div class="d-flex align-items-center my-1" style="margin:3px;">
             <!-- 等级和经验值进度条 -->
-            <h4 class="my-2">Lv.${level}</h4>
+            <h4 class="my-1">Lv.${level}</h4>
             <div class="progress position-relative ms-3 w-auto">
-              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: ${progress}%;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}"></div>
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: ${progress}%; animation-duration: ${3. / Math.sqrt(learning_rate)}s;" aria-valuenow="${this_level_current_exp}" aria-valuemin="0" aria-valuemax="${this_level_max_exp}"></div>
               <!-- 添加一个容器用于显示文字 -->
               <span class="progress-text position-absolute w-100 text-center" >${this_level_current_exp} / ${this_level_max_exp}</span>
             </div>
 
             <!-- 声音播放 -->
-            <div class="audio-player my-2 ms-4">
+            <div class="audio-player my-1 ms-4">
               <button id="play-audio-btn" class="btn btn-primary">🐱📣</button>
 
               <!-- 隐藏的音频元素 -->
@@ -491,7 +570,7 @@ function displayPokemon(id, url_id) {
             </div>
           </div>
 
-          <div class="my-2 d-flex justify-content-between">
+          <div class="my-1 d-flex justify-content-between">
             <!-- 类型展示 -->
             <div>
               <span class="badge bg-primary">${type1}</span>
@@ -505,16 +584,13 @@ function displayPokemon(id, url_id) {
           </div>
 
           <!-- 描述 -->
-          <p class="my-3">${flavor_text}</p>
+          <p class="my-1">${flavor_text}</p>
 
           <!-- 属性展示 -->
-          <div class="row my-3">
-            <div class="col-6">❤️ HP: ${current_hp}</div>
-            <div class="col-6">🌀 Speed: ${current_spd}</div>
-            <div class="col-6">⚔️ Attack: ${current_atk}</div>
-            <div class="col-6">🛡️ Defense: ${current_def}</div>
-            <div class="col-6">🔮 Sp. Attack: ${current_spatk}</div>
-            <div class="col-6">🔰 Sp. Defense: ${current_spdef}</div>
+          <div class="row" style="display: flex; justify-content: center;">
+            <div class="col-8">
+              <canvas id="stats-radar-chart" width="250" height="250"></canvas>
+            </div>
           </div>
 
           <!-- 解锁日期 -->
@@ -524,7 +600,84 @@ function displayPokemon(id, url_id) {
             <small> days ago (${unlocked_at})</small>
           </div>
         `;
-        
+
+        // 属性雷达图
+        let infoRGB = getComputedStyle(document.documentElement).getPropertyValue('--bs-info-rgb').trim();
+        let infoColor = `rgb(${infoRGB})`;
+        let infoBgColor = `rgba(${infoRGB}, 0.2)`;
+        let secRGB = getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-rgb').trim();
+        let secColor = `rgb(${secRGB})`;
+        let secBgColor = `rgba(${secRGB}, 0.2)`;
+
+        const ctx = document.getElementById('stats-radar-chart').getContext('2d');
+        const statsRadarChart = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: [
+              [String(current_hp), '❤️'], 
+              '⚔️ ' + String(current_atk), 
+              '🛡️ ' + String(current_def), 
+              ['🌀', String(current_spd)], 
+              String(current_spdef) + ' 🔰',
+              String(current_spatk) + ' 🔮', 
+            ],  // 六维数据标签
+            datasets: [
+              {
+                label: 'Current',
+                data: [current_hp, current_atk, current_def, current_spd, current_spdef, current_spatk],  // 六维数据值
+                backgroundColor: infoBgColor,  // 填充颜色
+                borderColor: infoColor,  // 边框颜色
+                borderWidth: 2,  // 边框宽度
+                pointBackgroundColor: infoColor,  // 点的颜色
+                pointBorderWidth: 0,  // 点的边框
+                pointHoverBackgroundColor: '#fff',
+              },
+              {
+                label: 'Species',
+                data: [hp, atk, def, spd, spdef, spatk],
+                backgroundColor: secBgColor,
+                borderWidth: 0,
+                pointRadius: 0,
+                pointBorderWidth: 0,
+              }
+          ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,  // 隐藏图例
+              },
+            },
+            scales: {
+              r: {
+                beginAtZero: true,
+                ticks: {
+                  display: false, // 不显示刻度
+                  stepSize: 100,  // 自定义每个刻度的数值差
+                  // color: '#666',  // 刻度颜色
+                },
+                angleLines: {
+                  color: '#ccc',  // 分隔线颜色
+                },
+                grid: {
+                  color: '#ddd',  // 网格线颜色
+                },
+                pointLabels: {
+                  color: '#333',  // 标签颜色
+                  font: {
+                    size: 14,  // 字体大小
+                  },
+                  callback: function(value) {
+                    return value;  // 返回数组格式的标签(为了分行显示"HP❤️")
+                  }
+                },
+                suggestedMin: 0,
+                suggestedMax: 200,
+              }
+            }
+          }
+        });
 
         // 更新图片展示卡片
         // ============================================================
@@ -626,6 +779,13 @@ function displayMediaContainer(pokemon) {
   } else {
     pokemon.img_urls = [];
   }
+
+  // const grid = document.getElementById('pokedex-media-container');
+  // const msnry = new Masonry(grid, {
+  //     itemSelector: 'img',      // 图片选择器
+  //     columnWidth: 300,         // 列宽
+  //     gutter: 20                // 图片间距
+  // });
   
   createAddImgCard(pokemon);
 }
@@ -667,7 +827,7 @@ function createAddImgCard(pokemon) {
 
 // 通过种族值和等级计算当前数值
 function calculatePokemonStat(base, level, isHP=false) {
-  let current = Math.floor((2.2 * base + level / 2) / 100) + 5;
+  let current = Math.floor((2.2 * base + level / 2) * level / 100) + 5;
   if (isHP) {
     current += level + 5;
   }

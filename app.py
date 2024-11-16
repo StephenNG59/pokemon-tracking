@@ -196,6 +196,26 @@ def add_pokemon_img():
     else:
         return jsonify({'status': 'error', 'message': '添加数据库的宝可梦图片失败'})
 
+@app.route('/add_pokemon_lr', methods=['PUT'])
+def add_pokemon_lr():
+    data = request.json
+    id = data.get('id')
+    url_id = data.get('url_id')
+    times = data.get('times')
+    response = supabase.rpc(
+        'add_learning_rate', {
+            'pokemon_id': id,
+            'pokemon_url_id': url_id,
+            'times': times
+        }
+    ).execute()
+
+    if response.data:
+        print(response.data)
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': '更改数据库的宝可梦学习速率失败'})
+
 @app.route('/update_pokemon', methods=['PUT'])
 def update_pokemon():
     data = request.json

@@ -13,15 +13,18 @@
 
   <style>
     #badge-container {
-      padding: 20px;
+      padding-top: 10px;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-bottom: 20px;
       align-items: end;
       background: var(--bs-secondary-bg-subtle);
       border-radius: 2rem;
-      height: 150px;
+      height: 170px;
     }
     .badge-card {
       position: relative;
-      margin: 0 10px;
+      margin: 0 15px;
     }
     .badge-count {
       font-family: "Libre Baskerville", serif;
@@ -100,6 +103,14 @@
           <a class="nav-link" href="#">Shops</a>
         </li>
       </ul>
+    </div>
+
+    <!-- 显示金币和时间精华 -->
+    <div>
+      ✨
+      <span id="coin-number" class="me-2"></span>
+      ⌛
+      <span id="time-number" class="me-2"></span>
     </div>
   </div>
 </nav>
@@ -247,16 +258,16 @@ let dateToRecord;
 // 页面加载时
 document.addEventListener('DOMContentLoaded', function () {
   const fetchResearchCommand = new FetchResearchCommand();
-  const fetchItemsCommand = new FetchItemsCommand();
   const fetchPokedexCommand = new FetchPokedexCommand();
-  const addHatchCounterCommand = new AddHatchCounterCommand(0);  // 偷懒使用这个来渲染蛋的进度
+  const addPokemonHatchCounterCommand = new AddPokemonHatchCounterCommand(0);  // 偷懒使用这个来渲染蛋的进度
+  const fetchItemsCommand = new FetchItemsCommand();
   commandManager.executeCommand(fetchResearchCommand);
-  commandManager.executeCommand(fetchItemsCommand);
   // commandManager.executeCommand(fetchPokedexCommand);
   fetchPokedexCommand.readIndexedDB().then(() => {  // 避免更新 DOM
     fetchPokedexCommand.addToSyncQueue();
   })
-  commandManager.executeCommand(addHatchCounterCommand);
+  commandManager.executeCommand(addPokemonHatchCounterCommand);
+  commandManager.executeCommand(fetchItemsCommand);
 })
 
 // ========================================================
@@ -286,8 +297,8 @@ function startTimer() {
       lastEggUpdate = elapsedTime;
 
       // 1. 孵蛋进度
-      const addHatchCounterCommand = new AddHatchCounterCommand(EveryUpdateSeconds / EveryHatchCounterSeconds);
-      commandManager.executeCommand(addHatchCounterCommand);
+      const addPokemonHatchCounterCommand = new AddPokemonHatchCounterCommand(EveryUpdateSeconds / EveryHatchCounterSeconds);
+      commandManager.executeCommand(addPokemonHatchCounterCommand);
 
       // 2. 宝可梦经验
       const addPokemonExpCommand = new AddPokemonExpCommand(Math.floor(EveryUpdateSeconds / EveryExpSeconds));
