@@ -556,8 +556,8 @@ function distributeResearchTimeAndReward(manual) {
     const practicePercentage = parseInt(slider.value, 10);
     const theoryPercentage = 100 - practicePercentage;
 
-    let practiceMinutes = Math.floor(secondsToDistribute * (practicePercentage / 6000));
-    let theoryMinutes = Math.floor(secondsToDistribute * (theoryPercentage / 6000));
+    let practiceMinutes = Math.round(secondsToDistribute * (practicePercentage / 6000));
+    let theoryMinutes = Math.round(secondsToDistribute * (theoryPercentage / 6000));
 
     let researchData = {
       date: dateToRecord,
@@ -573,8 +573,8 @@ function distributeResearchTimeAndReward(manual) {
     // 2. 更新道具记录
     // ====================================================
     const addItemsList = [
-      { id: 1,  delta: Math.floor(secondsToDistribute / EveryCoinSeconds) },     // 金币
-      { id: 11, delta: Math.floor(secondsToDistribute / EveryEssenceSeconds)  }, // 时间精华
+      { id: 1,  delta: Math.round(secondsToDistribute / EveryCoinSeconds) },     // 金币
+      { id: 11, delta: Math.round(secondsToDistribute / EveryEssenceSeconds)  }, // 时间精华
       // { id: 21, delta: Math.floor(secondsToDistribute / 100) },   // 神奇糖果
     ];
     // 弹出窗口显示获得的物品
