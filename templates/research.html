@@ -266,7 +266,9 @@ document.addEventListener('DOMContentLoaded', function () {
   fetchPokedexCommand.readIndexedDB().then(() => {  // 避免更新 DOM
     fetchPokedexCommand.addToSyncQueue();
   })
-  commandManager.executeCommand(addPokemonHatchCounterCommand);
+  addPokemonHatchCounterCommand.updateIndexedDB().then(() => {  // 避免把本地数据推送到数据库
+    setTimeout(() => addPokemonHatchCounterCommand.updateDOM(), 1000);
+  })
   commandManager.executeCommand(fetchItemsCommand);
 })
 
